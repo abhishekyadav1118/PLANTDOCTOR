@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlantDoctor — Leaf Disease Detector</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@500;600&display=swap');
+
+  :root {
+    --deep: #1b4332;
+    --mid: #2d6a4f;
+    --leaf: #52b788;
+    --leaf-light: #95d5b2;
+    --pale: #eafbf1;
+    --ink: #16241d;
+    --gray: #5c6b63;
+    --paper: #fbfaf7;
+    --card: #ffffff;
+    --clay: #d97757;
+    --warn-bg: #fdf0e8;
+    --red: #c1443f;
+    --red-bg: #fbeceb;
+    --amber: #b8860b;
+    --amber-bg: #fdf6e3;
+    --border: #eef1ee;
+    --shadow: 0 10px 30px rgba(27,67,50,0.10);
+  }
+
+  [data-theme="dark"] {
+    --deep: #0f2419;
+    --mid: #2d6a4f;
+    --leaf: #6bc99a;
+    --pale: #16281f;
+    --ink: #e8f3ec;
+    --gray: #9db3a7;
+    --paper: #0c1712;
+    --card: #142c21;
+    --border: #1f3a2b;
+    --shadow: 0 10px 30px rgba(0,0,0,0.4);
+    --warn-bg: #2e2013;
+    --red-bg: #2e1414;
+    --amber-bg: #2a2410;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    transition: background 0.3s, color 0.3s;
+  }
+
+  header {
+    background: linear-gradient(135deg, var(--deep), var(--mid));
+    color: white;
+    padding: 2.2rem 1.5rem 2.8rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before, header::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+  }
+  header::before {
+    top: -70px; right: -50px; width: 220px; height: 220px;
+    background: rgba(255,255,255,0.06);
+  }
+  header::after {
+    bottom: -90px; left: -40px; width: 180px; height: 180px;
+    background: rgba(255,255,255,0.05);
+  }
+
+  .top-controls {
+    position: absolute;
+    top: 0.9rem;
+    left: 0.9rem;
+    right: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    z-index: 2;
+  }
+
+  .pill-toggle {
+    display: flex;
+    background: rgba(255,255,255,0.15);
+    border-radius: 999px;
+    padding: 3px;
+  }
+
+  .pill-toggle button {
+    border: none;
+    background: transparent;
+    color: #cdece0;
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 0.32rem 0.65rem;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+
+  .pill-toggle button.active { background: white; color: var(--deep); }
+
+  .icon-toggle {
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.95rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(255,255,255,0.14);
+    color: #d8f0e2;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    margin-bottom: 0.8rem;
+    position: relative;
+  }
+
+  header h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 2rem;
+    margin: 0 0 0.4rem;
+    position: relative;
+  }
+
+  header p {
+    margin: 0;
+    color: #cdece0;
+    font-size: 0.92rem;
+    position: relative;
+  }
+
+  main {
+    max-width: 640px;
+    margin: -1.8rem auto 3rem;
+    padding: 0 1.2rem;
+    position: relative;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 1.8rem;
+    margin-bottom: 1.2rem;
+    animation: rise 0.4s ease;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .tile-row { display: flex; gap: 0.8rem; }
+
+  .tile {
+    flex: 1;
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    padding: 1.6rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    background: var(--pale);
+    transition: border-color 0.2s, transform 0.15s, background 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tile:hover { border-color: var(--leaf); transform: translateY(-2px); }
+  .tile.drag { border-color: var(--leaf); background: rgba(82,183,136,0.12); }
+
+  .tile-icon {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--mid);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .tile strong { display: block; color: var(--ink); font-size: 0.88rem; margin-bottom: 0.15rem; }
+  .tile span { font-size: 0.72rem; color: var(--gray); }
+
+  input[type="file"] { display: none; }
+
+  #preview-wrap {
+    display: none;
+    text-align: center;
+    margin-top: 1.1rem;
+    animation: rise 0.3s ease;
+  }
+
+  #preview-wrap img {
+    max-width: 100%;
+    max-height: 260px;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
+
+  #cameraModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  #cameraModal video { max-width: 90vw; max-height: 60vh; border-radius: 14px; }
+
+  .camera-controls { display: flex; gap: 0.8rem; margin-top: 1rem; }
+  .camera-controls button {
+    padding: 0.7rem 1.4rem; border-radius: 10px; border: none;
+    font-family: inherit; font-weight: 600; cursor: pointer;
+  }
+  #captureBtn { background: var(--leaf); color: white; }
+  #closeCameraBtn { background: #444; color: white; }
+
+  .btn {
+    display: block;
+    width: 100%;
+    margin-top: 1.3rem;
+    padding: 0.9rem;
+    background: linear-gradient(135deg, var(--mid), var(--deep));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.2s;
+    box-shadow: 0 6px 16px rgba(45,106,79,0.28);
+  }
+
+  .btn:hover:not(:disabled) { transform: translateY(-1px); }
+  .btn:active:not(:disabled) { transform: scale(0.99); }
+  .btn:disabled { background: #a9c4b6; box-shadow: none; cursor: not-allowed; }
+
+  .btn.loading { position: relative; color: transparent; }
+  .btn.loading::after {
+    content: "";
+    position: absolute; left: 50%; top: 50%;
+    width: 18px; height: 18px;
+    margin: -9px 0 0 -9px;
+    border: 2.5px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #status { text-align: center; color: var(--gray); font-size: 0.88rem; margin-top: 0.7rem; min-height: 1.2em; }
+
+  #result { display: none; }
+
+  .low-confidence-banner {
+    display: none;
+    background: var(--warn-bg);
+    color: var(--clay);
+    border-radius: 10px;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1.1rem;
+  }
+
+  .result-top { display: flex; align-items: center; gap: 1.1rem; }
+
+  .gauge-wrap { position: relative; width: 74px; height: 74px; flex-shrink: 0; }
+  .gauge-wrap svg { transform: rotate(-90deg); }
+  .gauge-bg { fill: none; stroke: var(--border); stroke-width: 7; }
+  .gauge-fg { fill: none; stroke: var(--leaf); stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease, stroke 0.3s; }
+  .gauge-label {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 700; color: var(--ink);
+  }
+
+  .result-heading { flex: 1; }
+
+  .category-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.35rem;
+  }
+
+  .category-chip.healthy { background: var(--pale); color: var(--mid); }
+  .category-chip.fungus { background: var(--amber-bg); color: var(--amber); }
+  .category-chip.bacteria { background: var(--warn-bg); color: var(--clay); }
+  .category-chip.virus { background: var(--red-bg); color: var(--red); }
+  .category-chip.pest { background: var(--warn-bg); color: var(--clay); }
+
+  .disease-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.35rem;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.25;
+  }
+
+  .info-block { margin-top: 1.2rem; padding-top: 1.1rem; border-top: 1px solid var(--border); display: flex; gap: 0.7rem; }
+  .info-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--pale); color: var(--mid);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem; flex-shrink: 0;
+  }
+  .info-block h4 { margin: 0 0 0.25rem; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray); }
+  .info-block p { margin: 0; font-size: 0.95rem; line-height: 1.5; color: var(--ink); }
+
+  .solution-list { margin: 0; padding: 0; list-style: none; }
+  .solution-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+  }
+  .solution-list li::before {
+    content: "✓";
+    flex-shrink: 0;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--leaf);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 0.15rem;
+  }
+
+  .history-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.08rem; color: var(--ink); margin: 0 0 0.9rem; }
+
+  .history-item { display: flex; align-items: center; gap: 0.7rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+  .history-item:last-child { border-bottom: none; }
+  .history-item img { width: 44px; height: 44px; object-fit: cover; border-radius: 9px; flex-shrink: 0; }
+  .history-item .h-name { font-size: 0.87rem; font-weight: 600; color: var(--ink); }
+  .history-item .h-meta { font-size: 0.75rem; color: var(--gray); }
+  .history-empty { color: var(--gray); font-size: 0.87rem; text-align: center; padding: 0.6rem 0; }
+
+  footer { text-align: center; color: var(--gray); font-size: 0.78rem; padding-bottom: 2rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="top-controls">
+    <button class="icon-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
+    <div class="pill-toggle">
+      <button id="langEn" class="active" onclick="setLang('en')">EN</button>
+      <button id="langHi" onclick="setLang('hi')">हिं</button>
+    </div>
+  </div>
+  <div class="badge" id="trustBadge">🌱 On-device AI · 96% training accuracy</div>
+  <h1 id="titleText">PlantDoctor</h1>
+  <p id="subtitleText">Upload a leaf photo — get the disease and how to treat it</p>
+</header>
+
+<main>
+  <div class="card" id="serverCard" style="padding: 1rem 1.4rem;">
+    <label style="font-size:0.76rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--gray); font-weight:600;" id="serverLabel">Server address</label>
+    <div style="display:flex; gap:0.5rem; margin-top:0.4rem;">
+      <input type="text" id="serverAddress" placeholder="192.168.1.5:5000" value="127.0.0.1:5000"
+        style="flex:1; padding:0.55rem 0.7rem; border-radius:8px; border:1px solid var(--border); background:var(--paper); color:var(--ink); font-family:inherit; font-size:0.9rem;">
+      <button id="saveServerBtn" style="padding:0.55rem 1rem; border-radius:8px; border:none; background:var(--mid); color:white; font-weight:600; cursor:pointer; font-family:inherit;">Save</button>
+    </div>
+    <p style="font-size:0.76rem; color:var(--gray); margin:0.4rem 0 0;" id="serverHint">On this laptop use 127.0.0.1:5000 · On phones use the laptop's WiFi IP (shown in the terminal when app.py starts)</p>
+  </div>
+</main>
+
+<main style="margin-top:-1.2rem;">
+  <div class="card">
+    <div class="tile-row">
+      <label class="tile" id="dropzone">
+        <div class="tile-icon">📤</div>
+        <strong id="uploadMain">Upload photo</strong>
+        <span id="uploadHint">JPG or PNG</span>
+        <input type="file" id="fileInput" accept="image/*">
+      </label>
+      <label class="tile" id="cameraBtn">
+        <div class="tile-icon">📷</div>
+        <strong id="cameraBtnText">Use camera</strong>
+        <span id="cameraHint">Take a photo now</span>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment">
+      </label>
+    </div>
+
+    <div id="preview-wrap">
+      <img id="preview" src="" alt="Uploaded leaf preview">
+    </div>
+
+    <button class="btn" id="predictBtn" disabled></button>
+    <div id="status"></div>
+  </div>
+
+  <div class="card" id="result">
+    <div class="low-confidence-banner" id="lowConfBanner"></div>
+    <div class="result-top">
+      <div class="gauge-wrap">
+        <svg width="74" height="74" viewBox="0 0 74 74">
+          <circle class="gauge-bg" cx="37" cy="37" r="31"></circle>
+          <circle class="gauge-fg" id="gaugeFg" cx="37" cy="37" r="31" stroke-dasharray="195" stroke-dashoffset="195"></circle>
+        </svg>
+        <div class="gauge-label" id="gaugeLabel">0%</div>
+      </div>
+      <div class="result-heading">
+        <div class="category-chip" id="categoryChip">—</div>
+        <p class="disease-name" id="diseaseName"></p>
+      </div>
+    </div>
+
+    <div class="info-block">
+      <div class="info-icon">🔬</div>
+      <div>
+        <h4 id="causeLabel">Likely cause</h4>
+        <p id="causeText"></p>
+      </div>
+    </div>
+
+    <div class="info-block">
+      <div class="info-icon">💊</div>
+      <div style="flex:1;">
+        <h4 id="solutionLabel">Recommended action</h4>
+        <ul class="solution-list" id="solutionList"></ul>
+      </div>
+    </div>
+
+    <div class="info-block" id="geminiBlock" style="display:none;">
+      <div class="info-icon">🤖</div>
+      <div style="flex:1;">
+        <h4>AI Explanation (Hindi + English)</h4>
+        <p id="geminiText" style="white-space: pre-line;"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="historyCard">
+    <p class="history-title" id="historyTitle">Recent checks</p>
+    <div id="historyList">
+      <p class="history-empty" id="historyEmpty">No checks yet this session</p>
+    </div>
+  </div>
+</main>
+
+<footer id="footerText">PlantDoctor · Local model running on your machine</footer>
+
+<script>
+  let API_URL = "http://127.0.0.1:5000/predict";
+  const LOW_CONFIDENCE_THRESHOLD = 60;
+  const GAUGE_CIRC = 195; // 2 * PI * 31
+
+  const serverAddressInput = document.getElementById('serverAddress');
+  const saveServerBtn = document.getElementById('saveServerBtn');
+  saveServerBtn.addEventListener('click', () => {
+    const addr = serverAddressInput.value.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+    if (addr) {
+      API_URL = 'http://' + addr + '/predict';
+      statusEl.textContent = '';
+      saveServerBtn.textContent = '✓';
+      setTimeout(() => { saveServerBtn.textContent = TEXT[currentLang].save || 'Save'; }, 1200);
+    }
+  });
+
+  let historyItems = [];
+  let selectedFile = null;
+  let currentLang = 'en';
+  let darkMode = false;
+  let lastResultData = null;
+
+  const TEXT = {
+    en: {
+      badge: "🌱 On-device AI · 96% training accuracy",
+      title: "PlantDoctor",
+      subtitle: "Upload a leaf photo — get the disease and how to treat it",
+      uploadMain: "Upload photo", uploadHint: "JPG or PNG",
+      cameraBtn: "Use camera", cameraHint: "Take a photo now",
+      predictBtn: "Analyze leaf", analyzing: "Analyzing leaf…",
+      serverError: "Could not reach the server. Is app.py running?",
+      cause: "Likely cause", solution: "Recommended action",
+      history: "Recent checks", historyEmpty: "No checks yet this session",
+      footer: "PlantDoctor · Local model running on your machine",
+      lowConf: "⚠ Low confidence — try a clearer, well-lit photo of the leaf",
+      confident: "confident", capture: "📸 Capture", cancel: "Cancel",
+      cameraError: "Could not access camera. Check browser permissions.",
+      healthy: "Healthy", fungus: "Fungal", bacteria: "Bacterial", virus: "Viral", pest: "Pest",
+      save: "Save", serverLabel: "Server address", serverHint: "On this laptop use 127.0.0.1:5000 · On phones use the laptop's WiFi IP (shown in the terminal when app.py starts)"
+    },
+    hi: {
+      badge: "🌱 डिवाइस पर AI · 96% सटीकता",
+      title: "प्लांटडॉक्टर",
+      subtitle: "पत्ती की फोटो अपलोड करें — बीमारी और उसका इलाज जानें",
+      uploadMain: "फोटो अपलोड करें", uploadHint: "JPG या PNG",
+      cameraBtn: "कैमरा इस्तेमाल करें", cameraHint: "अभी फोटो लें",
+      predictBtn: "पत्ती जांचें", analyzing: "जांच हो रही है…",
+      serverError: "सर्वर से संपर्क नहीं हो पाया। क्या app.py चल रहा है?",
+      cause: "संभावित कारण", solution: "सुझाया गया उपचार",
+      history: "हाल की जांचें", historyEmpty: "इस सत्र में अभी कोई जांच नहीं हुई",
+      footer: "प्लांटडॉक्टर · आपके कंप्यूटर पर चल रहा है",
+      lowConf: "⚠ कम भरोसेमंद परिणाम — साफ़ और अच्छी रोशनी में फोटो लें",
+      confident: "भरोसा", capture: "📸 फोटो लें", cancel: "रद्द करें",
+      cameraError: "कैमरा एक्सेस नहीं मिला। ब्राउज़र अनुमतियाँ जांचें।",
+      healthy: "स्वस्थ", fungus: "फफूंद", bacteria: "बैक्टीरिया", virus: "वायरस", pest: "कीट",
+      save: "सेव करें", serverLabel: "सर्वर पता", serverHint: "इस लैपटॉप पर 127.0.0.1:5000 इस्तेमाल करें · फोन पर लैपटॉप का WiFi IP इस्तेमाल करें (app.py शुरू होने पर टर्मिनल में दिखता है)"
+    }
+  };
+
+  // Hindi translations for each of the 15 trained disease classes,
+  // keyed by the model's raw class name (data.raw_class from the backend)
+  const HINDI_INFO = {
+    "Tomato_Bacterial_spot": {
+      name: "टमाटर — बैक्टीरियल स्पॉट",
+      cause: "ज़ैंथोमोनास बैक्टीरिया, गर्म और नम मौसम में फैलता है",
+      solution: ["संक्रमित पत्तियाँ हटा दें", "ऊपर से पानी देने से बचें", "कॉपर आधारित बैक्टीरिसाइड का छिड़काव करें"]
+    },
+    "Tomato__Target_Spot": {
+      name: "टमाटर — टारगेट स्पॉट",
+      cause: "कोरिनेस्पोरा कैसीकोला (फफूंद)",
+      solution: ["क्लोरोथैलोनिल या मैंकोज़ेब फफूंदनाशक डालें", "हवा का बहाव बेहतर करें", "संक्रमित पत्तियाँ हटा दें"]
+    },
+    "Pepper__bell___healthy": {
+      name: "शिमला मिर्च — स्वस्थ",
+      cause: "कोई बीमारी नहीं मिली",
+      solution: ["पौधा स्वस्थ है", "नियमित पानी और निगरानी जारी रखें"]
+    },
+    "Tomato__Tomato_YellowLeaf__Curl_Virus": {
+      name: "टमाटर — येलो लीफ कर्ल वायरस",
+      cause: "सफ़ेद मक्खी से फैलने वाला वायरस",
+      solution: ["संक्रमित पौधे हटाकर नष्ट करें", "सफ़ेद मक्खी को कीटनाशक/चिपचिपे ट्रैप से नियंत्रित करें", "वायरस-प्रतिरोधी किस्में उगाएं"]
+    },
+    "Potato___Early_blight": {
+      name: "आलू — अर्ली ब्लाइट",
+      cause: "अल्टरनेरिया सोलानी (फफूंद)",
+      solution: ["क्लोरोथैलोनिल फफूंदनाशक डालें", "फसल चक्र अपनाएं", "पौधों के बीच उचित दूरी रखें"]
+    },
+    "Tomato_Late_blight": {
+      name: "टमाटर — लेट ब्लाइट",
+      cause: "फाइटोफ्थोरा इन्फेस्टान्स (फफूंद)",
+      solution: ["मैंकोज़ेब या कॉपर फफूंदनाशक डालें", "संक्रमित पत्तियाँ हटा दें", "ऊपर से पानी देने से बचें"]
+    },
+    "Tomato_Septoria_leaf_spot": {
+      name: "टमाटर — सेप्टोरिया लीफ स्पॉट",
+      cause: "सेप्टोरिया लाइकोपर्सिसी (फफूंद)",
+      solution: ["नीचे की संक्रमित पत्तियाँ हटा दें", "फफूंदनाशक का छिड़काव करें", "पत्तियों को गीला करने से बचें"]
+    },
+    "Tomato_Leaf_Mold": {
+      name: "टमाटर — लीफ मोल्ड",
+      cause: "पैसालोरा फुल्वा (फफूंद), नमी में बढ़ता है",
+      solution: ["हवा का बहाव बेहतर करें", "नमी कम करें", "फफूंदनाशक डालें", "ऊपर से पानी देने से बचें"]
+    },
+    "Tomato_Spider_mites_Two_spotted_spider_mite": {
+      name: "टमाटर — स्पाइडर माइट (कीट)",
+      cause: "टेट्रानाइकस अर्टिका (कीट, बीमारी नहीं)",
+      solution: ["मिटिसाइड या नीम तेल का छिड़काव करें", "नमी बढ़ाएं", "लेडीबग जैसे प्राकृतिक शिकारी छोड़ें"]
+    },
+    "Pepper__bell___Bacterial_spot": {
+      name: "शिमला मिर्च — बैक्टीरियल स्पॉट",
+      cause: "ज़ैंथोमोनास बैक्टीरिया",
+      solution: ["संक्रमित पत्तियाँ हटा दें", "कॉपर आधारित बैक्टीरिसाइड डालें", "ऊपर से पानी देने से बचें"]
+    },
+    "Potato___healthy": {
+      name: "आलू — स्वस्थ",
+      cause: "कोई बीमारी नहीं मिली",
+      solution: ["पौधा स्वस्थ है", "नियमित पानी और निगरानी जारी रखें"]
+    },
+    "Tomato_healthy": {
+      name: "टमाटर — स्वस्थ",
+      cause: "कोई बीमारी नहीं मिली",
+      solution: ["पौधा स्वस्थ है", "नियमित पानी और निगरानी जारी रखें"]
+    },
+    "Potato___Late_blight": {
+      name: "आलू — लेट ब्लाइट",
+      cause: "फाइटोफ्थोरा इन्फेस्टान्स (फफूंद)",
+      solution: ["तुरंत मैंकोज़ेब या कॉपर फफूंदनाशक डालें", "संक्रमित पौधे हटा दें", "ऊपर से पानी देने से बचें"]
+    },
+    "Tomato__Tomato_mosaic_virus": {
+      name: "टमाटर — मोज़ेक वायरस",
+      cause: "टोबामोवायरस, संपर्क और औज़ारों से फैलता है",
+      solution: ["संक्रमित पौधे हटाकर नष्ट करें", "औज़ार साफ़ रखें", "पौधों को छूने से पहले हाथ धोएं", "प्रतिरोधी किस्में उगाएं"]
+    },
+    "Tomato_Early_blight": {
+      name: "टमाटर — अर्ली ब्लाइट",
+      cause: "अल्टरनेरिया सोलानी (फफूंद)",
+      solution: ["क्लोरोथैलोनिल या मैंकोज़ेब फफूंदनाशक डालें", "नीचे की संक्रमित पत्तियाँ हटा दें", "तने के आधार पर मल्च करें"]
+    }
+  };
+
+  function setLang(lang) {
+    currentLang = lang;
+    document.getElementById('langEn').classList.toggle('active', lang === 'en');
+    document.getElementById('langHi').classList.toggle('active', lang === 'hi');
+    const t = TEXT[lang];
+    document.getElementById('trustBadge').textContent = t.badge;
+    document.getElementById('titleText').textContent = t.title;
+    document.getElementById('subtitleText').textContent = t.subtitle;
+    document.getElementById('uploadMain').textContent = t.uploadMain;
+    document.getElementById('uploadHint').textContent = t.uploadHint;
+    document.getElementById('cameraBtnText').textContent = t.cameraBtn;
+    document.getElementById('cameraHint').textContent = t.cameraHint;
+    document.getElementById('predictBtn').textContent = t.predictBtn;
+    document.getElementById('causeLabel').textContent = t.cause;
+    document.getElementById('solutionLabel').textContent = t.solution;
+    document.getElementById('historyTitle').textContent = t.history;
+    document.getElementById('footerText').textContent = t.footer;
+    document.getElementById('serverLabel').textContent = t.serverLabel;
+    document.getElementById('serverHint').textContent = t.serverHint;
+    saveServerBtn.textContent = t.save;
+    if (historyItems.length === 0) document.getElementById('historyEmpty').textContent = t.historyEmpty;
+    if (lastResultData) renderResult(lastResultData);
+  }
+
+  function toggleTheme() {
+    darkMode = !darkMode;
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    document.getElementById('themeToggle').textContent = darkMode ? '☀️' : '🌙';
+  }
+
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const previewWrap = document.getElementById('preview-wrap');
+  const preview = document.getElementById('preview');
+  const predictBtn = document.getElementById('predictBtn');
+  const statusEl = document.getElementById('status');
+  const resultEl = document.getElementById('result');
+
+  fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
+  dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('drag');
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+
+  function handleFile(file) {
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preview.src = e.target.result;
+      previewWrap.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+    predictBtn.disabled = false;
+    resultEl.style.display = 'none';
+    statusEl.textContent = '';
+  }
+
+  const cameraInput = document.getElementById('cameraInput');
+  cameraInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+  function detectCategory(rawClass, cause) {
+    const text = (rawClass + ' ' + cause).toLowerCase();
+    if (text.includes('healthy')) return 'healthy';
+    if (text.includes('virus')) return 'virus';
+    if (text.includes('bacter') || text.includes('xanthomonas')) return 'bacteria';
+    if (text.includes('mite') || text.includes('pest') || text.includes('insect')) return 'pest';
+    return 'fungus';
+  }
+
+  const categoryIcon = { healthy: '✅', fungus: '🍄', bacteria: '🦠', virus: '🧬', pest: '🐛' };
+  const categoryColor = { healthy: 'var(--leaf)', fungus: 'var(--amber)', bacteria: 'var(--clay)', virus: 'var(--red)', pest: 'var(--clay)' };
+
+  function renderResult(data) {
+    const t = TEXT[currentLang];
+    const category = detectCategory(data.raw_class || data.disease, data.cause);
+    const hi = HINDI_INFO[data.raw_class];
+
+    let displayName = data.disease;
+    let displayCause = data.cause;
+    let solutionItems = String(data.solution).split(',').map(s => s.trim()).filter(Boolean);
+
+    if (currentLang === 'hi' && hi) {
+      displayName = hi.name;
+      displayCause = hi.cause;
+      solutionItems = hi.solution;
+    }
+
+    document.getElementById('diseaseName').textContent = displayName;
+    document.getElementById('causeText').textContent = displayCause;
+
+    const list = document.getElementById('solutionList');
+    list.innerHTML = solutionItems.map(item => `<li>${item}</li>`).join('');
+
+    const chip = document.getElementById('categoryChip');
+    chip.className = 'category-chip ' + category;
+    chip.innerHTML = categoryIcon[category] + ' ' + t[category];
+
+    const gaugeFg = document.getElementById('gaugeFg');
+    const offset = GAUGE_CIRC - (GAUGE_CIRC * data.confidence / 100);
+    gaugeFg.style.strokeDashoffset = offset;
+    gaugeFg.style.stroke = categoryColor[category];
+    document.getElementById('gaugeLabel').textContent = Math.round(data.confidence) + '%';
+
+    const banner = document.getElementById('lowConfBanner');
+    const isLow = data.confidence < LOW_CONFIDENCE_THRESHOLD;
+    banner.style.display = isLow ? 'block' : 'none';
+    banner.textContent = isLow ? t.lowConf : '';
+
+    if (data.gemini_explanation) {
+      document.getElementById('geminiText').innerText = data.gemini_explanation;
+      document.getElementById('geminiBlock').style.display = 'block';
+    } else {
+      document.getElementById('geminiBlock').style.display = 'none';
+    }
+
+    resultEl.style.display = 'block';
+  }
+
+  predictBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    const t = TEXT[currentLang];
+
+    predictBtn.disabled = true;
+    predictBtn.classList.add('loading');
+    statusEl.textContent = t.analyzing;
+    resultEl.style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const res = await fetch(API_URL, { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Server error');
+      const data = await res.json();
+
+      if (data.error) {
+        statusEl.textContent = 'Error: ' + data.error;
+        return;
+      }
+
+      lastResultData = data;
+      renderResult(data);
+      statusEl.textContent = '';
+
+      addToHistory(data, preview.src);
+    } catch (err) {
+      statusEl.textContent = t.serverError;
+    } finally {
+      predictBtn.disabled = false;
+      predictBtn.classList.remove('loading');
+    }
+  });
+
+  function addToHistory(data, imgSrc) {
+    historyItems.unshift({ disease: data.disease, confidence: Math.round(data.confidence), img: imgSrc, time: new Date().toLocaleTimeString() });
+    if (historyItems.length > 6) historyItems.pop();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('historyList');
+    const t = TEXT[currentLang];
+    if (historyItems.length === 0) { list.innerHTML = `<p class="history-empty">${t.historyEmpty}</p>`; return; }
+    list.innerHTML = historyItems.map(item => `
+      <div class="history-item">
+        <img src="${item.img}" alt="">
+        <div><div class="h-name">${item.disease}</div><div class="h-meta">${item.confidence}% · ${item.time}</div></div>
+      </div>
+    `).join('');
+  }
+
+  setLang('en');
+</script>
+
+</body>
+</html>

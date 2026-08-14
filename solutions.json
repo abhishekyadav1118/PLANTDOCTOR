@@ -1,0 +1,62 @@
+{
+  "Tomato_Bacterial_spot": {
+    "cause": "Xanthomonas bacteria, spreads in warm wet weather",
+    "solution": "Remove infected leaves, avoid overhead watering, spray copper-based bactericide"
+  },
+  "Tomato__Target_Spot": {
+    "cause": "Corynespora cassiicola (fungus)",
+    "solution": "Apply chlorothalonil or mancozeb fungicide, improve air circulation, remove infected leaves"
+  },
+  "Pepper__bell___healthy": {
+    "cause": "No disease detected",
+    "solution": "Plant is healthy. Continue regular watering and monitoring"
+  },
+  "Tomato__Tomato_YellowLeaf__Curl_Virus": {
+    "cause": "Virus spread by whiteflies",
+    "solution": "Remove and destroy infected plants, control whiteflies with insecticide/sticky traps, use virus-resistant varieties"
+  },
+  "Potato___Early_blight": {
+    "cause": "Alternaria solani (fungus)",
+    "solution": "Apply chlorothalonil fungicide, rotate crops, ensure proper plant spacing"
+  },
+  "Tomato_Late_blight": {
+    "cause": "Phytophthora infestans (fungus)",
+    "solution": "Spray mancozeb or copper fungicide, remove infected leaves, avoid overhead watering"
+  },
+  "Tomato_Septoria_leaf_spot": {
+    "cause": "Septoria lycopersici (fungus)",
+    "solution": "Remove infected lower leaves, apply fungicide, avoid wetting foliage while watering"
+  },
+  "Tomato_Leaf_Mold": {
+    "cause": "Passalora fulva (fungus), thrives in humid conditions",
+    "solution": "Improve ventilation, reduce humidity, apply fungicide, avoid overhead watering"
+  },
+  "Tomato_Spider_mites_Two_spotted_spider_mite": {
+    "cause": "Tetranychus urticae (pest, not a disease)",
+    "solution": "Spray with miticide or neem oil, increase humidity, introduce natural predators like ladybugs"
+  },
+  "Pepper__bell___Bacterial_spot": {
+    "cause": "Xanthomonas bacteria",
+    "solution": "Remove infected leaves, apply copper-based bactericide, avoid overhead watering"
+  },
+  "Potato___healthy": {
+    "cause": "No disease detected",
+    "solution": "Plant is healthy. Continue regular watering and monitoring"
+  },
+  "Tomato_healthy": {
+    "cause": "No disease detected",
+    "solution": "Plant is healthy. Continue regular watering and monitoring"
+  },
+  "Potato___Late_blight": {
+    "cause": "Phytophthora infestans (fungus)",
+    "solution": "Spray mancozeb or copper fungicide immediately, remove infected plants, avoid overhead watering"
+  },
+  "Tomato__Tomato_mosaic_virus": {
+    "cause": "Tobamovirus, spreads via contact and contaminated tools",
+    "solution": "Remove and destroy infected plants, disinfect tools, wash hands before handling plants, use resistant varieties"
+  },
+  "Tomato_Early_blight": {
+    "cause": "Alternaria solani (fungus)",
+    "solution": "Apply chlorothalonil or mancozeb fungicide, remove infected lower leaves, mulch around base"
+  }
+}

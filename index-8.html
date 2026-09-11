@@ -1,0 +1,2923 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlantDoctor — AI-Powered Plant Disease Detection & Health Assistant</title>
+  <meta name="description" content="PlantDoctor uses advanced AI computer vision to detect plant leaf diseases instantly and provides organic, chemical and preventive care solutions.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* -------------------------------------------------------------
+       CSS DESIGN TOKENS & THEMING
+    ------------------------------------------------------------- */
+    :root {
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif;
+
+      /* Primary Brand Palette */
+      --forest-950: #04130d;
+      --forest-900: #081c14;
+      --forest-850: #0c241b;
+      --forest-800: #123326;
+      --forest-700: #1a4a37;
+      --emerald-600: #059669;
+      --emerald-500: #10b981;
+      --emerald-400: #34d399;
+      --lime-400: #4ade80;
+      --lime-300: #86efac;
+
+      /* UI Theme Tokens (Dark Mode Default) */
+      --bg-main: #06160f;
+      --bg-surface: #0b2217;
+      --bg-card: rgba(14, 39, 28, 0.72);
+      --bg-card-hover: rgba(18, 49, 35, 0.88);
+      --border-subtle: rgba(52, 211, 153, 0.16);
+      --border-focus: rgba(74, 222, 128, 0.55);
+      --text-primary: #f0fdf4;
+      --text-secondary: #a7f3d0;
+      --text-muted: #6ee7b7;
+      --text-dim: #7f998c;
+      --accent-glow: rgba(16, 185, 129, 0.28);
+      --card-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.6);
+      --hero-blob-1: rgba(16, 185, 129, 0.15);
+      --hero-blob-2: rgba(74, 222, 128, 0.12);
+
+      /* Diagnostic Status Colors */
+      --healthy: #22c55e;
+      --fungus: #f59e0b;
+      --bacteria: #f97316;
+      --virus: #ef4444;
+      --pest: #ec4899;
+    }
+
+    [data-theme="light"] {
+      --bg-main: #f5faf7;
+      --bg-surface: #ebf5ee;
+      --bg-card: rgba(255, 255, 255, 0.92);
+      --bg-card-hover: #ffffff;
+      --border-subtle: rgba(16, 185, 129, 0.20);
+      --border-focus: rgba(5, 150, 105, 0.65);
+      --text-primary: #072317;
+      --text-secondary: #134e35;
+      --text-muted: #1e6b4a;
+      --text-dim: #5c7a6c;
+      --accent-glow: rgba(16, 185, 129, 0.15);
+      --card-shadow: 0 14px 35px -6px rgba(10, 40, 25, 0.10);
+      --hero-blob-1: rgba(16, 185, 129, 0.12);
+      --hero-blob-2: rgba(74, 222, 128, 0.14);
+    }
+
+    /* -------------------------------------------------------------
+       GLOBAL RESET & BASE STYLES
+    ------------------------------------------------------------- */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      position: relative;
+    }
+
+    /* Ambient Background Blobs */
+    .ambient-blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.7;
+      animation: blobFloat 18s ease-in-out infinite alternate;
+    }
+    .ambient-blob-1 {
+      top: -120px;
+      right: -80px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, var(--hero-blob-1), transparent 70%);
+    }
+    .ambient-blob-2 {
+      top: 40%;
+      left: -150px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--hero-blob-2), transparent 70%);
+      animation-duration: 22s;
+    }
+    .ambient-blob-3 {
+      bottom: -100px;
+      right: 15%;
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, var(--hero-blob-1), transparent 70%);
+      animation-duration: 20s;
+    }
+
+    @keyframes blobFloat {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(40px, 30px) scale(1.08); }
+      100% { transform: translate(-30px, 50px) scale(0.95); }
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Section Headers */
+    .section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--emerald-400);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      margin-bottom: 0.85rem;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 2.3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: 0.85rem;
+      line-height: 1.22;
+    }
+
+    .section-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-dim);
+      max-width: 620px;
+      margin-bottom: 2.5rem;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+    .text-center .section-subtitle {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* -------------------------------------------------------------
+       NAVIGATION BAR
+    ------------------------------------------------------------- */
+    .navbar {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+      background: rgba(6, 22, 15, 0.82);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.3s;
+    }
+    [data-theme="light"] .navbar {
+      background: rgba(245, 250, 247, 0.88);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 74px;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .brand-logo-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, var(--emerald-500), #22c55e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.45);
+      position: relative;
+    }
+    .brand-logo-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: #ffffff;
+    }
+
+    .brand-logo span.highlight {
+      color: var(--emerald-400);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.8rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.94rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: color 0.2s, transform 0.2s;
+      position: relative;
+      padding: 0.3rem 0;
+    }
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--lime-300);
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--emerald-400);
+      border-radius: 2px;
+      transition: width 0.25s ease;
+    }
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .theme-toggle-btn, .lang-toggle-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle-btn {
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+    }
+    .theme-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: rotate(15deg);
+    }
+
+    .lang-pill-group {
+      display: flex;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 2px;
+    }
+    .lang-pill-group button {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.32rem 0.65rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .lang-pill-group button.active {
+      background: var(--emerald-500);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, var(--emerald-500), #16a34a);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 0.62rem 1.25rem;
+      border-radius: 999px;
+      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.38);
+      transition: all 0.25s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-nav-cta:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.55);
+      color: #ffffff;
+    }
+
+    /* Mobile Hamburger */
+    .mobile-menu-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    /* -------------------------------------------------------------
+       HERO SECTION
+    ------------------------------------------------------------- */
+    .hero-section {
+      padding: 4.5rem 0 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.12fr 0.88fr;
+      gap: 3.5rem;
+      align-items: center;
+    }
+
+    .hero-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.28);
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--emerald-400);
+      margin-bottom: 1.3rem;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+    }
+    .hero-badge-pill .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: var(--lime-400);
+      box-shadow: 0 0 10px var(--lime-400);
+      animation: pulseDot 2s infinite;
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: 3.55rem;
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      margin-bottom: 1.4rem;
+    }
+    .hero-title .gradient-text {
+      background: linear-gradient(135deg, #4ade80, #10b981 50%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      line-height: 1.68;
+      max-width: 540px;
+      margin-bottom: 2.2rem;
+      opacity: 0.95;
+    }
+
+    .hero-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2.8rem;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      background: linear-gradient(135deg, #10b981, #16a34a);
+      color: #ffffff;
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 0.9rem 1.8rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.42);
+      transition: all 0.25s ease;
+      text-decoration: none;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 14px 35px rgba(16, 185, 129, 0.58);
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      font-size: 1.05rem;
+      font-weight: 600;
+      padding: 0.9rem 1.8rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      transition: all 0.25s ease;
+      text-decoration: none;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: var(--emerald-400);
+      transform: translateY(-2px);
+      color: var(--text-primary);
+    }
+
+    .hero-trust-bar {
+      display: flex;
+      align-items: center;
+      gap: 1.8rem;
+      flex-wrap: wrap;
+      padding-top: 1.2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .trust-item .icon-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: var(--lime-300);
+    }
+
+    /* -------------------------------------------------------------
+       HERO VISUAL (MATCHING MOCKUP WITH AI SCANNER & PHONE)
+    ------------------------------------------------------------- */
+    .hero-visual-wrapper {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      perspective: 1200px;
+    }
+
+    .hero-visual-container {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      animation: subtleFloat 6s ease-in-out infinite alternate;
+    }
+    @keyframes subtleFloat {
+      0% { transform: translateY(0px) rotate(0deg); }
+      100% { transform: translateY(-10px) rotate(0.6deg); }
+    }
+
+    /* Leaf Photo Frame */
+    .leaf-photo-frame {
+      position: relative;
+      border-radius: 26px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 35px rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      background: #092116;
+    }
+    .leaf-photo-frame img {
+      width: 100%;
+      height: 380px;
+      object-fit: cover;
+      display: block;
+      filter: contrast(1.05) saturate(1.1);
+      transition: transform 0.6s ease;
+    }
+    .leaf-photo-frame:hover img {
+      transform: scale(1.04);
+    }
+
+    /* AI Scanning Corner Brackets */
+    .ai-scan-reticle {
+      position: absolute;
+      top: 15%;
+      left: 15%;
+      width: 70%;
+      height: 70%;
+      pointer-events: none;
+      z-index: 3;
+      border: 1px dashed rgba(74, 222, 128, 0.35);
+      border-radius: 12px;
+      animation: reticlePulse 3s ease-in-out infinite;
+    }
+    @keyframes reticlePulse {
+      0%, 100% { transform: scale(1); opacity: 0.85; }
+      50% { transform: scale(1.02); opacity: 1; border-color: rgba(74, 222, 128, 0.75); }
+    }
+
+    .corner {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-color: #4ade80;
+      border-style: solid;
+      border-width: 0;
+      filter: drop-shadow(0 0 6px rgba(74, 222, 128, 0.9));
+    }
+    .corner-tl { top: -2px; left: -2px; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 6px; }
+    .corner-tr { top: -2px; right: -2px; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 6px; }
+    .corner-bl { bottom: -2px; left: -2px; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 6px; }
+    .corner-br { bottom: -2px; right: -2px; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 6px; }
+
+    /* Moving Glowing Scanning Laser Beam */
+    .laser-scan-line {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #4ade80 20%, #86efac 50%, #4ade80 80%, transparent);
+      box-shadow: 0 0 16px 4px rgba(74, 222, 128, 0.75), 0 0 30px rgba(16, 185, 129, 0.5);
+      animation: laserSweep 3.2s ease-in-out infinite;
+      z-index: 4;
+      pointer-events: none;
+    }
+    @keyframes laserSweep {
+      0% { top: 0%; opacity: 0; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    /* Floating AI Result Badge (as seen in Mockup) */
+    .floating-result-badge {
+      position: absolute;
+      top: -24px;
+      right: -20px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(14px);
+      padding: 0.85rem 1.15rem;
+      border-radius: 18px;
+      box-shadow: 0 16px 35px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(74, 222, 128, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      z-index: 6;
+      animation: floatBadge 4s ease-in-out infinite alternate;
+      color: #0c241b;
+    }
+    @keyframes floatBadge {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-8px); }
+    }
+    .badge-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #e6f9ed;
+      color: #16a34a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+    .badge-info .badge-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #16a34a;
+    }
+    .badge-info .badge-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #0b1f17;
+      line-height: 1.2;
+    }
+    .badge-info .badge-conf {
+      font-size: 0.74rem;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    /* Floating Mini Smartphone Mockup (as seen in Mockup) */
+    .floating-phone-mockup {
+      position: absolute;
+      bottom: -35px;
+      right: -30px;
+      width: 175px;
+      background: #0d1f18;
+      border: 3px solid #1f3a2b;
+      border-radius: 24px;
+      padding: 0.6rem;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65);
+      z-index: 5;
+      animation: phoneFloat 5s ease-in-out infinite alternate;
+      backdrop-filter: blur(10px);
+    }
+    @keyframes phoneFloat {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(6px); }
+    }
+    .phone-screen {
+      background: #071911;
+      border-radius: 16px;
+      padding: 0.6rem 0.5rem;
+      color: #fff;
+      font-size: 0.7rem;
+    }
+    .phone-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+      font-size: 0.65rem;
+      color: #86efac;
+      font-weight: 700;
+    }
+    .phone-thumb-box {
+      width: 100%;
+      height: 75px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+      position: relative;
+    }
+    .phone-thumb-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .phone-disease-title {
+      font-weight: 700;
+      font-size: 0.72rem;
+      color: #f0fdf4;
+      margin-bottom: 0.2rem;
+    }
+    .phone-solution-pill {
+      background: rgba(74, 222, 128, 0.15);
+      color: #4ade80;
+      padding: 0.25rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.62rem;
+      line-height: 1.3;
+      margin-bottom: 0.4rem;
+    }
+    .phone-action-btn {
+      background: #22c55e;
+      color: #fff;
+      text-align: center;
+      padding: 0.3rem 0;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.64rem;
+    }
+
+    /* -------------------------------------------------------------
+       FEATURES SECTION ("Everything You Need for Healthier Plants")
+    ------------------------------------------------------------- */
+    .features-section {
+      padding: 6rem 0;
+      position: relative;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 22px;
+      padding: 2.2rem 1.6rem;
+      backdrop-filter: blur(14px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--emerald-400), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feature-card:hover {
+      transform: translateY(-8px);
+      background: var(--bg-card-hover);
+      border-color: var(--border-focus);
+      box-shadow: 0 22px 50px -10px rgba(16, 185, 129, 0.2);
+    }
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-icon-wrapper {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 1.4rem;
+      transition: transform 0.3s;
+    }
+    .feature-card:hover .feature-icon-wrapper {
+      transform: scale(1.1) rotate(5deg);
+      background: rgba(16, 185, 129, 0.22);
+    }
+
+    .feature-card h3 {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.65rem;
+    }
+
+    .feature-card p {
+      font-size: 0.92rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+
+    /* -------------------------------------------------------------
+       HOW IT WORKS SECTION (3-STEP TIMELINE)
+    ------------------------------------------------------------- */
+    .how-it-works-section {
+      padding: 6rem 0;
+      position: relative;
+    }
+
+    .how-it-works-layout {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 3.5rem;
+      align-items: center;
+    }
+
+    .steps-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      position: relative;
+    }
+    .steps-timeline::before {
+      content: '';
+      position: absolute;
+      top: 24px;
+      bottom: 24px;
+      left: 27px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--emerald-400), rgba(74, 222, 128, 0.1));
+    }
+
+    .step-item {
+      display: flex;
+      gap: 1.4rem;
+      align-items: flex-start;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-number {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 2px solid var(--emerald-400);
+      color: var(--lime-300);
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+      transition: all 0.3s;
+    }
+    .step-item:hover .step-number {
+      transform: scale(1.1);
+      background: var(--emerald-500);
+      color: #ffffff;
+    }
+
+    .step-content {
+      padding-top: 0.3rem;
+    }
+    .step-content h3 {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.4rem;
+    }
+    .step-content p {
+      font-size: 0.95rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+
+    /* How it works side graphic */
+    .how-it-works-graphic {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .demo-phone-card {
+      width: 290px;
+      background: var(--forest-900);
+      border: 2px solid rgba(52, 211, 153, 0.3);
+      border-radius: 32px;
+      padding: 1.2rem;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 0 0 40px rgba(16, 185, 129, 0.15);
+      position: relative;
+    }
+
+    .handwritten-badge {
+      position: absolute;
+      top: -24px;
+      left: -28px;
+      background: #eefbf3;
+      color: #0f4a2d;
+      font-family: 'Outfit', cursive, sans-serif;
+      font-size: 0.95rem;
+      font-weight: 800;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+      transform: rotate(-8deg);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .handwritten-badge::after {
+      content: '↳';
+      font-size: 1.2rem;
+      margin-left: 2px;
+    }
+
+    .greener-slogan {
+      margin-top: 1.8rem;
+      text-align: center;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--emerald-400);
+      letter-spacing: 0.02em;
+    }
+    .greener-slogan span {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-top: 0.2rem;
+    }
+
+    /* -------------------------------------------------------------
+       AI DIAGNOSIS SHOWCASE & LIVE SCANNER SECTION
+    ------------------------------------------------------------- */
+    .scanner-section {
+      padding: 6rem 0;
+      position: relative;
+    }
+
+    .scanner-dashboard {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 28px;
+      padding: 2.5rem;
+      backdrop-filter: blur(18px);
+      box-shadow: var(--card-shadow), 0 0 50px rgba(16, 185, 129, 0.1);
+      display: grid;
+      grid-template-columns: 1fr 1.08fr;
+      gap: 2.5rem;
+    }
+
+    /* Left: Uploader Panel */
+    .upload-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .tile-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .upload-tile {
+      background: var(--bg-surface);
+      border: 2px dashed var(--border-subtle);
+      border-radius: 18px;
+      padding: 1.6rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-primary);
+    }
+    .upload-tile:hover, .upload-tile.drag {
+      border-color: var(--emerald-400);
+      background: rgba(16, 185, 129, 0.12);
+      transform: translateY(-3px);
+    }
+    .upload-tile input[type="file"] {
+      display: none;
+    }
+    .upload-tile .tile-icon {
+      font-size: 2.1rem;
+      margin-bottom: 0.45rem;
+    }
+    .upload-tile strong {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+    .upload-tile span {
+      font-size: 0.76rem;
+      color: var(--text-dim);
+      margin-top: 0.2rem;
+    }
+
+    /* Live Preview Box */
+    #preview-wrap {
+      display: none;
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--border-focus);
+      background: #000;
+      height: 240px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    #preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .preview-overlay-grid {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(rgba(16, 185, 129, 0.1) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(16, 185, 129, 0.1) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* Scan Action Button */
+    .btn-analyze {
+      width: 100%;
+      padding: 1rem;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, var(--emerald-500), #16a34a);
+      color: #ffffff;
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(16, 185, 129, 0.4);
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+    }
+    .btn-analyze:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+      background: #2a473a;
+    }
+    .btn-analyze:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(16, 185, 129, 0.55);
+    }
+    .btn-analyze.loading {
+      position: relative;
+      color: transparent !important;
+    }
+    .btn-analyze.loading::after {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border: 3px solid rgba(255, 255, 255, 0.35);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #status {
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-align: center;
+      min-height: 1.3rem;
+      color: var(--emerald-400);
+    }
+
+    /* Server Settings Drawer (Clean & Collapsible) */
+    .server-config-box {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 0.8rem;
+      font-size: 0.8rem;
+    }
+    .server-config-toggle {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .server-config-toggle:hover {
+      color: var(--emerald-400);
+    }
+    .server-config-fields {
+      display: none;
+      margin-top: 0.6rem;
+      gap: 0.5rem;
+    }
+    .server-config-fields.show {
+      display: flex;
+    }
+    .server-config-fields input {
+      flex: 1;
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-size: 0.85rem;
+    }
+    .server-config-fields button {
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      border: none;
+      background: var(--emerald-500);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Right: Diagnostic Results Panel */
+    .result-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .result-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 360px;
+      border: 2px dashed var(--border-subtle);
+      border-radius: 20px;
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-dim);
+    }
+    .result-placeholder .placeholder-icon {
+      font-size: 3rem;
+      margin-bottom: 0.8rem;
+      opacity: 0.7;
+    }
+
+    #result {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-header-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 1.4rem;
+      margin-bottom: 1.2rem;
+    }
+
+    /* Gauge */
+    .gauge-wrap {
+      position: relative;
+      width: 82px;
+      height: 82px;
+      flex-shrink: 0;
+    }
+    .gauge-wrap svg {
+      transform: rotate(-90deg);
+    }
+    .gauge-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.1);
+      stroke-width: 6;
+    }
+    .gauge-fg {
+      fill: none;
+      stroke: var(--emerald-400);
+      stroke-width: 6;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.8s ease, stroke 0.3s ease;
+    }
+    .gauge-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: var(--text-primary);
+    }
+
+    .result-meta-box {
+      flex: 1;
+    }
+    .category-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+    .category-chip.healthy { background: rgba(34, 197, 94, 0.18); color: #4ade80; }
+    .category-chip.fungus { background: rgba(245, 158, 11, 0.18); color: #fbbf24; }
+    .category-chip.bacteria { background: rgba(249, 115, 22, 0.18); color: #fb923c; }
+    .category-chip.virus { background: rgba(239, 68, 68, 0.18); color: #f87171; }
+    .category-chip.pest { background: rgba(236, 72, 153, 0.18); color: #f472b6; }
+
+    .disease-name {
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.25;
+    }
+
+    .info-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.15rem 1.3rem;
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.9rem;
+    }
+    .info-card .info-icon {
+      font-size: 1.35rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+    .info-card h4 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--emerald-400);
+      margin-bottom: 0.35rem;
+    }
+    .info-card p, .info-card ul {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+    .info-card ul {
+      padding-left: 1.2rem;
+      margin: 0;
+    }
+    .info-card ul li {
+      margin-bottom: 0.3rem;
+    }
+
+    .gemini-explanation-card {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 78, 59, 0.25));
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      border-radius: 16px;
+      padding: 1.2rem 1.4rem;
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .low-confidence-banner {
+      display: none;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fbbf24;
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    #notRecognizedBlock {
+      display: none;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 18px;
+      padding: 1.8rem 1.4rem;
+      text-align: center;
+    }
+
+    /* History Shelf */
+    .history-shelf {
+      margin-top: 1.5rem;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 1.2rem;
+    }
+    .history-shelf-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      margin-bottom: 0.8rem;
+    }
+    .history-items-grid {
+      display: flex;
+      gap: 0.8rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+    .history-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 0.4rem 0.75rem 0.4rem 0.4rem;
+      flex-shrink: 0;
+    }
+    .history-pill img {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .history-pill .hp-name {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .history-pill .hp-meta {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+    }
+
+    /* -------------------------------------------------------------
+       STATISTICS SECTION (ANIMATED COUNTERS)
+    ------------------------------------------------------------- */
+    .stats-section {
+      padding: 5rem 0;
+      position: relative;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 22px;
+      padding: 2.2rem 1.5rem;
+      text-align: center;
+      backdrop-filter: blur(14px);
+      box-shadow: var(--card-shadow);
+      transition: transform 0.3s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--border-focus);
+    }
+
+    .stat-number {
+      font-family: var(--font-display);
+      font-size: 3.1rem;
+      font-weight: 800;
+      color: var(--emerald-400);
+      line-height: 1.1;
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    /* -------------------------------------------------------------
+       TESTIMONIALS & GREEN REVOLUTION BANNER
+    ------------------------------------------------------------- */
+    .testimonials-section {
+      padding: 5.5rem 0;
+      position: relative;
+    }
+
+    .revolution-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.25fr;
+      gap: 2rem;
+      align-items: stretch;
+    }
+
+    .green-revolution-banner {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 2.5rem;
+      color: #ffffff;
+      min-height: 380px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+    }
+    .green-revolution-banner img.bg-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      filter: brightness(0.65);
+      transition: transform 0.8s ease;
+    }
+    .green-revolution-banner:hover img.bg-img {
+      transform: scale(1.05);
+    }
+    .revolution-content {
+      position: relative;
+      z-index: 1;
+    }
+    .revolution-content .rev-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #86efac;
+      margin-bottom: 0.5rem;
+    }
+    .revolution-content h3 {
+      font-family: var(--font-display);
+      font-size: 1.85rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 0.6rem;
+    }
+    .revolution-content p {
+      font-size: 0.95rem;
+      color: #e2e8f0;
+      margin-bottom: 1.4rem;
+      line-height: 1.5;
+    }
+    .app-badges-row {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+    .app-badge-btn {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .app-badge-btn:hover {
+      background: rgba(0, 0, 0, 0.85);
+      border-color: #4ade80;
+    }
+
+    /* Testimonials Column */
+    .reviews-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.2rem;
+    }
+
+    .review-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 1.4rem 1.6rem;
+      backdrop-filter: blur(14px);
+      box-shadow: var(--card-shadow);
+      transition: transform 0.25s ease;
+    }
+    .review-card:hover {
+      transform: translateX(4px);
+      border-color: var(--border-focus);
+    }
+    .review-header {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin-bottom: 0.6rem;
+    }
+    .reviewer-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--emerald-500), #16a34a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #fff;
+      font-size: 1rem;
+    }
+    .reviewer-info .r-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+    }
+    .reviewer-info .r-role {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+    .star-rating {
+      color: #fbbf24;
+      font-size: 0.85rem;
+      margin-left: auto;
+    }
+    .review-text {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    /* -------------------------------------------------------------
+       CTA BANNER SECTION
+    ------------------------------------------------------------- */
+    .cta-section {
+      padding: 5rem 0;
+      position: relative;
+    }
+
+    .cta-banner-card {
+      background: linear-gradient(135deg, #0d3625, #0a291c);
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      border-radius: 32px;
+      padding: 4rem 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 45px rgba(16, 185, 129, 0.2);
+    }
+    .cta-banner-card::before {
+      content: '';
+      position: absolute;
+      top: -150px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 300px;
+      background: radial-gradient(ellipse, rgba(74, 222, 128, 0.25), transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-banner-card h2 {
+      font-family: var(--font-display);
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 1rem;
+      line-height: 1.18;
+      position: relative;
+    }
+
+    .cta-banner-card p {
+      font-size: 1.15rem;
+      color: #bbf7d0;
+      max-width: 600px;
+      margin: 0 auto 2.2rem;
+      position: relative;
+    }
+
+    /* -------------------------------------------------------------
+       FOOTER
+    ------------------------------------------------------------- */
+    .site-footer {
+      background: #04120b;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 4rem 0 2.5rem;
+      color: var(--text-dim);
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    .footer-brand p {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      margin-top: 0.8rem;
+      max-width: 320px;
+      line-height: 1.6;
+    }
+
+    .footer-col h4 {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+
+    .footer-col ul a {
+      font-size: 0.88rem;
+      color: var(--text-dim);
+      transition: color 0.2s;
+    }
+    .footer-col ul a:hover {
+      color: var(--emerald-400);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .social-links-row {
+      display: flex;
+      gap: 1rem;
+    }
+    .social-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .social-btn:hover {
+      background: var(--emerald-500);
+      color: #ffffff;
+      transform: translateY(-2px);
+    }
+
+    .server-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.78rem;
+      color: var(--emerald-400);
+      background: rgba(16, 185, 129, 0.1);
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(52, 211, 153, 0.2);
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+    }
+
+    /* -------------------------------------------------------------
+       SCROLL REVEAL ANIMATION CLASSES
+    ------------------------------------------------------------- */
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    .reveal-on-scroll.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Accessibility: Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .ambient-blob, .laser-scan-line, .floating-result-badge, .floating-phone-mockup, .hero-visual-container {
+        animation: none !important;
+      }
+      .reveal-on-scroll {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    }
+
+    /* -------------------------------------------------------------
+       RESPONSIVE BREAKPOINTS
+    ------------------------------------------------------------- */
+    @media (max-width: 1024px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 3.5rem;
+        text-align: center;
+      }
+      .hero-subtitle {
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hero-btn-group {
+        justify-content: center;
+      }
+      .hero-trust-bar {
+        justify-content: center;
+      }
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .how-it-works-layout {
+        grid-template-columns: 1fr;
+      }
+      .scanner-dashboard {
+        grid-template-columns: 1fr;
+      }
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .revolution-grid {
+        grid-template-columns: 1fr;
+      }
+      .footer-top {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+      .mobile-menu-btn {
+        display: block;
+      }
+      .hero-title {
+        font-size: 2.6rem;
+      }
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      .tile-row {
+        grid-template-columns: 1fr;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .cta-banner-card {
+        padding: 3rem 1.5rem;
+      }
+      .cta-banner-card h2 {
+        font-size: 2.1rem;
+      }
+      .footer-top {
+        grid-template-columns: 1fr;
+      }
+      .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Animated Lighting Blobs -->
+  <div class="ambient-blob ambient-blob-1"></div>
+  <div class="ambient-blob ambient-blob-2"></div>
+  <div class="ambient-blob ambient-blob-3"></div>
+
+  <!-- NAVIGATION BAR -->
+  <nav class="navbar" id="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="brand-logo">
+        <div class="brand-logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>
+        </div>
+        Plant<span class="highlight">Doctor</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#hero" class="active" id="navHome">Home</a></li>
+        <li><a href="#features" id="navFeatures">Features</a></li>
+        <li><a href="#how-it-works" id="navHow">How It Works</a></li>
+        <li><a href="#scanner" id="navScanner">AI Diagnosis</a></li>
+        <li><a href="#stats" id="navStats">Stats</a></li>
+        <li><a href="#testimonials" id="navReviews">Reviews</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <!-- Dark / Light Theme Toggle -->
+        <button class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle Dark / Light Theme">🌙</button>
+
+        <!-- EN / HI Language Toggle -->
+        <div class="lang-pill-group">
+          <button id="langEn" class="active" onclick="setLang('en')">EN</button>
+          <button id="langHi" onclick="setLang('hi')">हिं</button>
+        </div>
+
+        <!-- Scan CTA -->
+        <a href="#scanner" class="btn-nav-cta" id="navCtaBtn">
+          <span>Scan Plant</span> →
+        </a>
+
+        <button class="mobile-menu-btn" onclick="toggleMobileNav()" aria-label="Open Navigation">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section class="hero-section" id="hero">
+    <div class="container">
+      <div class="hero-grid">
+        
+        <!-- Left: Copy & Actions -->
+        <div class="hero-copy reveal-on-scroll">
+          <div class="hero-badge-pill" id="heroBadge">
+            <span class="pulse-dot"></span>
+            HEALTHIER PLANTS • GREENER TOMORROW
+          </div>
+
+          <h1 class="hero-title" id="heroHeadline">
+            Healthy Plants Start with a <span class="gradient-text">Smart Diagnosis</span>
+          </h1>
+
+          <p class="hero-subtitle" id="heroSubheading">
+            PlantDoctor uses AI-powered plant disease detection to identify plant problems and provide simple, practical solutions.
+          </p>
+
+          <div class="hero-btn-group">
+            <a href="#scanner" class="btn-primary" id="heroScanBtn">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <span>Scan Your Plant</span>
+            </a>
+            <a href="#features" class="btn-secondary" id="heroExploreBtn">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Explore PlantDoctor</span>
+            </a>
+          </div>
+
+          <div class="hero-trust-bar">
+            <div class="trust-item">
+              <div class="icon-circle">✓</div>
+              <span id="trust1">Accurate Detection (96%)</span>
+            </div>
+            <div class="trust-item">
+              <div class="icon-circle">🌿</div>
+              <span id="trust2">Expert Organic Solutions</span>
+            </div>
+            <div class="trust-item">
+              <div class="icon-circle">⚡</div>
+              <span id="trust3">Fast & Easy To Use</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Realistic Visual with AI Scanner Frame & Floating Cards -->
+        <div class="hero-visual-wrapper reveal-on-scroll">
+          <div class="hero-visual-container">
+            
+            <!-- Floating Result Card (as in Mockup) -->
+            <div class="floating-result-badge">
+              <div class="badge-icon-box">🌿</div>
+              <div class="badge-info">
+                <div class="badge-tag">Disease Detected</div>
+                <div class="badge-title">Early Blight <span style="font-size:0.75rem; color:#64748b; font-weight:normal;">(Tomato)</span></div>
+                <div class="badge-conf">Confidence: <strong>92%</strong></div>
+              </div>
+            </div>
+
+            <!-- Leaf Photo Frame with AI Scanner Reticle -->
+            <div class="leaf-photo-frame">
+              <img src="./hero_leaf.jpg" alt="Tomato Leaf with Early Blight spots being scanned by PlantDoctor AI" onerror="this.src='https://images.unsplash.com/photo-1592417817098-8f3d6910985b?auto=format&fit=crop&w=800&q=80'">
+              
+              <!-- AI Corner Brackets -->
+              <div class="ai-scan-reticle">
+                <div class="corner corner-tl"></div>
+                <div class="corner corner-tr"></div>
+                <div class="corner corner-bl"></div>
+                <div class="corner corner-br"></div>
+              </div>
+
+              <!-- Animated Laser Scanning Line -->
+              <div class="laser-scan-line"></div>
+            </div>
+
+            <!-- Floating Mini Phone App Preview (Matching Mockup) -->
+            <div class="floating-phone-mockup">
+              <div class="phone-screen">
+                <div class="phone-header">
+                  <span>PlantDoctor</span>
+                  <span>● 98%</span>
+                </div>
+                <div class="phone-thumb-box">
+                  <img src="./hero_leaf.jpg" alt="Plant leaf">
+                </div>
+                <div class="phone-disease-title">Early Blight</div>
+                <div class="phone-solution-pill">
+                  • Remove infected leaves<br>
+                  • Use copper fungicide
+                </div>
+                <div class="phone-action-btn">View Treatment</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES SECTION ("Everything You Need for Healthier Plants") -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <div class="text-center reveal-on-scroll">
+        <div class="section-tag" id="featTag">WHY PLANTDOCTOR?</div>
+        <h2 class="section-title" id="featTitle">Everything You Need for Healthier Plants</h2>
+        <p class="section-subtitle" id="featSubtitle">
+          From disease detection to expert guidance, PlantDoctor is your trusted AI companion for sustainable crop care.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Feature 1 -->
+        <div class="feature-card reveal-on-scroll">
+          <div class="feature-icon-wrapper">🔬</div>
+          <h3 id="f1Title">AI Disease Detection</h3>
+          <p id="f1Desc">Instantly identify 15+ crop diseases across Tomato, Potato, and Pepper leaves with deep neural vision models.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="feature-card reveal-on-scroll" style="transition-delay: 0.1s;">
+          <div class="feature-icon-wrapper">⚡</div>
+          <h3 id="f2Title">Instant Results</h3>
+          <p id="f2Desc">Millisecond image analysis with real-time confidence scores, leaf validation, and non-plant photo rejection.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="feature-card reveal-on-scroll" style="transition-delay: 0.2s;">
+          <div class="feature-icon-wrapper">💊</div>
+          <h3 id="f3Title">Disease Solutions</h3>
+          <p id="f3Desc">Curated agronomy remedies detailing actionable treatments, watering adjustments, and organic prevention.</p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="feature-card reveal-on-scroll" style="transition-delay: 0.3s;">
+          <div class="feature-icon-wrapper">🤖</div>
+          <h3 id="f4Title">Plant Care Guidance</h3>
+          <p id="f4Desc">Bilingual AI explanations in Hindi + English powered by Gemini to help farmers and gardeners take immediate action.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS SECTION (3-STEP TIMELINE) -->
+  <section class="how-it-works-section" id="how-it-works">
+    <div class="container">
+      <div class="how-it-works-layout">
+        
+        <!-- Left: Steps -->
+        <div class="reveal-on-scroll">
+          <div class="section-tag" id="howTag">HOW IT WORKS</div>
+          <h2 class="section-title" id="howTitle">Get Your Plant Checked in 3 Simple Steps</h2>
+          <p class="section-subtitle" id="howSubtitle">
+            Protect your garden or agricultural crop with accurate, AI-backed insights in seconds.
+          </p>
+
+          <div class="steps-timeline">
+            <!-- Step 1 -->
+            <div class="step-item">
+              <div class="step-number">01</div>
+              <div class="step-content">
+                <h3 id="s1Title">Upload Plant Image</h3>
+                <p id="s1Desc">Take a photo directly with your mobile camera or upload an existing JPG/PNG leaf picture.</p>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-item">
+              <div class="step-number">02</div>
+              <div class="step-content">
+                <h3 id="s2Title">AI Analyzes the Leaf</h3>
+                <p id="s2Desc">Our trained Convolutional Neural Network scans the color distribution, leaf morphology, and lesion patterns.</p>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-item">
+              <div class="step-number">03</div>
+              <div class="step-content">
+                <h3 id="s3Title">Get Disease & Solution</h3>
+                <p id="s3Desc">Receive the verified disease identification, confidence percentage, likely causes, and treatment remedies.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Graphic Card -->
+        <div class="how-it-works-graphic reveal-on-scroll">
+          <div class="demo-phone-card">
+            <div class="handwritten-badge">Simple & Easy!</div>
+            <div style="width:100%; height:260px; border-radius:18px; overflow:hidden; margin-bottom:1rem; position:relative;">
+              <img src="./hero_leaf.jpg" style="width:100%; height:100%; object-fit:cover;" alt="Leaf analysis demo">
+              <div style="position:absolute; bottom:12px; left:12px; right:12px; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); padding:0.6rem 0.8rem; border-radius:12px; border:1px solid rgba(74,222,128,0.4);">
+                <div style="font-size:0.7rem; color:#86efac; font-weight:700;">AI Vision Status:</div>
+                <div style="font-size:0.85rem; font-weight:700; color:#fff;">Analyzing Chlorosis & Lesions...</div>
+              </div>
+            </div>
+            <button class="btn-analyze" style="padding:0.65rem; font-size:0.92rem;" onclick="document.getElementById('scanner').scrollIntoView({behavior:'smooth'})">
+              Analyze Leaf Now
+            </button>
+          </div>
+
+          <div class="greener-slogan">
+            Healthy Plants • Happy Farmers
+            <span>A Greener, More Productive Harvest</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- AI DIAGNOSIS SHOWCASE / LIVE SCANNER (PRESERVING ALL BACKEND INTERACTION) -->
+  <section class="scanner-section" id="scanner">
+    <div class="container">
+      <div class="text-center reveal-on-scroll">
+        <div class="section-tag" id="scanTag">LIVE AI DIAGNOSIS</div>
+        <h2 class="section-title" id="scanTitle">Scan & Diagnose Your Plant Leaf Now</h2>
+        <p class="section-subtitle" id="scanSubtitle">
+          Upload a clear photo of Tomato, Potato, or Bell Pepper leaves to test the trained model.
+        </p>
+      </div>
+
+      <!-- Live Dashboard Box -->
+      <div class="scanner-dashboard reveal-on-scroll">
+        
+        <!-- Left: Uploader Area -->
+        <div class="upload-panel">
+          <div class="tile-row">
+            <label class="upload-tile" id="dropzone">
+              <div class="tile-icon">📤</div>
+              <strong id="uploadMain">Upload photo</strong>
+              <span id="uploadHint">JPG or PNG (Click or Drag)</span>
+              <input type="file" id="fileInput" accept="image/*">
+            </label>
+
+            <label class="upload-tile" id="cameraBtn">
+              <div class="tile-icon">📷</div>
+              <strong id="cameraBtnText">Use camera</strong>
+              <span id="cameraHint">Take a photo now</span>
+              <input type="file" id="cameraInput" accept="image/*" capture="environment">
+            </label>
+          </div>
+
+          <!-- Preview -->
+          <div id="preview-wrap">
+            <img id="preview" src="" alt="Uploaded leaf preview">
+            <div class="preview-overlay-grid"></div>
+          </div>
+
+          <button class="btn-analyze" id="predictBtn" disabled>
+            <span id="predictBtnText">Analyze Leaf</span>
+          </button>
+          
+          <div id="status"></div>
+
+          <!-- Supported Crops Pill Bar -->
+          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-surface); padding:0.65rem 1rem; border-radius:12px; border:1px solid var(--border-subtle); font-size:0.78rem; color:var(--text-dim);">
+            <span>Supported Crops:</span>
+            <span style="color:var(--text-primary); font-weight:600;">Tomato 🍅 · Potato 🥔 · Pepper 🫑</span>
+          </div>
+
+          <!-- Collapsible Server Settings -->
+          <div class="server-config-box">
+            <button class="server-config-toggle" onclick="toggleServerSettings()">
+              ⚙️ <span id="serverLabel">Backend Server Connection (127.0.0.1:5000)</span>
+            </button>
+            <div class="server-config-fields" id="serverFields">
+              <input type="text" id="serverAddress" placeholder="127.0.0.1:5000" value="127.0.0.1:5000">
+              <button id="saveServerBtn">Save</button>
+            </div>
+            <p style="font-size:0.72rem; color:var(--text-dim); margin-top:0.3rem;" id="serverHint">
+              Laptop default: 127.0.0.1:5000 · For mobile devices, enter your PC's WiFi IP address.
+            </p>
+          </div>
+        </div>
+
+        <!-- Right: Diagnostic Result Screen -->
+        <div class="result-panel">
+          
+          <!-- Empty State (Shown before scan) -->
+          <div class="result-placeholder" id="resultPlaceholder">
+            <div class="placeholder-icon">🌱</div>
+            <h3 style="font-family:var(--font-display); font-size:1.3rem; margin-bottom:0.4rem; color:var(--text-primary);" id="phTitle">Awaiting Leaf Photo</h3>
+            <p style="font-size:0.9rem; max-width:320px;" id="phDesc">Upload or capture an image of a plant leaf to start the AI diagnosis.</p>
+          </div>
+
+          <!-- Actual Result Card -->
+          <div id="result">
+            <div class="low-confidence-banner" id="lowConfBanner"></div>
+
+            <!-- Non-plant or Human Face rejection block -->
+            <div id="notRecognizedBlock">
+              <div style="font-size:2.2rem; margin-bottom:0.5rem;">🤔</div>
+              <p style="font-weight:700; font-size:1.15rem; color:var(--text-primary); margin-bottom:0.4rem;" id="notRecognizedTitle">Not Recognized</p>
+              <p style="color:var(--text-dim); font-size:0.92rem; line-height:1.5;" id="notRecognizedText">
+                This photo does not look like Tomato, Potato, or Pepper leaves. Please upload a clear photo of crop leaves with good lighting.
+              </p>
+            </div>
+
+            <!-- Valid Result Details -->
+            <div id="resultContent">
+              <div class="result-header-card">
+                <div class="gauge-wrap">
+                  <svg width="82" height="82" viewBox="0 0 74 74">
+                    <circle class="gauge-bg" cx="37" cy="37" r="31"></circle>
+                    <circle class="gauge-fg" id="gaugeFg" cx="37" cy="37" r="31" stroke-dasharray="195" stroke-dashoffset="195"></circle>
+                  </svg>
+                  <div class="gauge-label" id="gaugeLabel">0%</div>
+                </div>
+                <div class="result-meta-box">
+                  <div class="category-chip" id="categoryChip">—</div>
+                  <div class="disease-name" id="diseaseName">Ready for Diagnosis</div>
+                </div>
+              </div>
+
+              <!-- Likely Cause Block -->
+              <div class="info-card">
+                <div class="info-icon">🔬</div>
+                <div>
+                  <h4 id="causeLabel">Likely Cause</h4>
+                  <p id="causeText"></p>
+                </div>
+              </div>
+
+              <!-- Recommended Action Block -->
+              <div class="info-card">
+                <div class="info-icon">💊</div>
+                <div style="flex:1;">
+                  <h4 id="solutionLabel">Recommended Action</h4>
+                  <ul id="solutionList"></ul>
+                </div>
+              </div>
+
+              <!-- Gemini Bilingual Explanation Block -->
+              <div class="gemini-explanation-card" id="geminiBlock" style="display:none;">
+                <div class="info-icon">🤖</div>
+                <div style="flex:1;">
+                  <h4>AI EXPLANATION (HINDI + ENGLISH)</h4>
+                  <p id="geminiText" style="white-space: pre-line;"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent History Shelf -->
+            <div class="history-shelf" id="historyCard">
+              <div class="history-shelf-title" id="historyTitle">Recent Checks</div>
+              <div class="history-items-grid" id="historyList">
+                <p class="history-empty" id="historyEmpty" style="font-size:0.85rem; color:var(--text-dim);">No checks yet this session</p>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- STATISTICS SECTION -->
+  <section class="stats-section" id="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-card reveal-on-scroll">
+          <div class="stat-number" data-target="96" data-suffix="%">0%</div>
+          <div class="stat-label" id="stat1Label">Detection Accuracy</div>
+        </div>
+        <div class="stat-card reveal-on-scroll" style="transition-delay: 0.1s;">
+          <div class="stat-number" data-target="10" data-suffix="K+">0K+</div>
+          <div class="stat-label" id="stat2Label">Plant Images Analyzed</div>
+        </div>
+        <div class="stat-card reveal-on-scroll" style="transition-delay: 0.2s;">
+          <div class="stat-number" data-target="20" data-suffix="+">0+</div>
+          <div class="stat-label" id="stat3Label">Plant Disease Classes</div>
+        </div>
+        <div class="stat-card reveal-on-scroll" style="transition-delay: 0.3s;">
+          <div class="stat-number" data-target="24" data-suffix="/7">0/7</div>
+          <div class="stat-label" id="stat4Label">AI Plant Assistance</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS & GREEN REVOLUTION -->
+  <section class="testimonials-section" id="testimonials">
+    <div class="container">
+      <div class="text-center reveal-on-scroll">
+        <div class="section-tag" id="revTag">WHAT USERS SAY</div>
+        <h2 class="section-title" id="revTitle">Loved by Farmers & Plant Enthusiasts</h2>
+        <p class="section-subtitle" id="revSubtitle">See how growers protect their harvest using PlantDoctor's automated diagnosis.</p>
+      </div>
+
+      <div class="revolution-grid">
+        <!-- Banner with generated seedling visual -->
+        <div class="green-revolution-banner reveal-on-scroll">
+          <img src="./seedling_card.jpg" class="bg-img" alt="Seedling growing in fertile soil" onerror="this.src='https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?auto=format&fit=crop&w=800&q=80'">
+          <div class="revolution-content">
+            <div class="rev-tag">JOIN THE GREEN REVOLUTION</div>
+            <h3>Let's Build a Healthier Planet Together</h3>
+            <p>Download PlantDoctor today and give your crops and backyard plants the scientific care they deserve.</p>
+            <div class="app-badges-row">
+              <button class="app-badge-btn" onclick="alert('Mobile PWA version is ready on your browser!')">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M3.609 1.814L13.792 12 3.61 22.186c-.198-.125-.33-.356-.33-.618V2.432c0-.262.132-.493.33-.618zm11.233 11.233l2.455-2.455-2.455-2.455 1.58-1.58 4.035 4.035-4.035 4.035-1.58-1.58z"/></svg>
+                Google Play
+              </button>
+              <button class="app-badge-btn" onclick="alert('Mobile PWA version is ready on your browser!')">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.85c.66-.82 1.11-1.95.99-3.08-1.01.05-2.22.68-2.93 1.5-.6.69-1.12 1.82-.98 2.93 1.12.09 2.26-.53 2.92-1.35z"/></svg>
+                App Store
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 User Reviews (as in Mockup) -->
+        <div class="reviews-col">
+          <div class="review-card reveal-on-scroll">
+            <div class="review-header">
+              <div class="reviewer-avatar">RS</div>
+              <div class="reviewer-info">
+                <div class="r-name">Rohit Sharma</div>
+                <div class="r-role">Farmer, Maharashtra</div>
+              </div>
+              <div class="star-rating">★★★★★</div>
+            </div>
+            <p class="review-text">"This app is amazing! It helped me save my tomato crop from early blight. The Hindi explanation made it very easy to understand the right treatment."</p>
+          </div>
+
+          <div class="review-card reveal-on-scroll" style="transition-delay: 0.1s;">
+            <div class="review-header">
+              <div class="reviewer-avatar">PS</div>
+              <div class="reviewer-info">
+                <div class="r-name">Priya Singh</div>
+                <div class="r-role">Urban Gardener</div>
+              </div>
+              <div class="star-rating">★★★★★</div>
+            </div>
+            <p class="review-text">"Super easy to use and very accurate. I just love PlantDoctor! Now I know exactly when to spray neem oil or reduce watering."</p>
+          </div>
+
+          <div class="review-card reveal-on-scroll" style="transition-delay: 0.2s;">
+            <div class="review-header">
+              <div class="reviewer-avatar">AV</div>
+              <div class="reviewer-info">
+                <div class="r-name">Aman Verma</div>
+                <div class="r-role">Plant Hobbyist</div>
+              </div>
+              <div class="star-rating">★★★★★</div>
+            </div>
+            <p class="review-text">"The solution tips are really helpful. My bell pepper plants are healthier now and flowering without any pest problems!"</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-banner-card reveal-on-scroll">
+        <h2 id="ctaTitle">Give Your Plants a Smarter Diagnosis</h2>
+        <p id="ctaDesc">Scan. Detect. Treat. Grow healthier plants with PlantDoctor's intelligent AI assistant.</p>
+        <a href="#scanner" class="btn-primary" style="font-size:1.15rem; padding:1rem 2.4rem;" id="ctaBtn">
+          Start Diagnosis →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="brand-logo" style="margin-bottom:0.5rem;">
+            <div class="brand-logo-icon">
+              <svg viewBox="0 0 24 24"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>
+            </div>
+            Plant<span class="highlight">Doctor</span>
+          </div>
+          <p id="footerSub">AI-Powered Plant Health Assistant • Healthy Plants | Sustainable Future</p>
+          <div class="server-status-badge" style="margin-top:1rem;">
+            <span class="status-dot"></span>
+            <span>API Server: 127.0.0.1:5000</span>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#scanner">AI Scanner</a></li>
+            <li><a href="#stats">Impact Stats</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Supported Crops</h4>
+          <ul>
+            <li><a href="#scanner">Tomato (Solanum lycopersicum)</a></li>
+            <li><a href="#scanner">Potato (Solanum tuberosum)</a></li>
+            <li><a href="#scanner">Bell Pepper (Capsicum annuum)</a></li>
+            <li><a href="#scanner">Organic Pest Remedies</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Connect</h4>
+          <div class="social-links-row" style="margin-bottom:1rem;">
+            <a href="#" class="social-btn" aria-label="YouTube">▶</a>
+            <a href="#" class="social-btn" aria-label="Instagram">📸</a>
+            <a href="#" class="social-btn" aria-label="LinkedIn">in</a>
+            <a href="#" class="social-btn" aria-label="X">𝕏</a>
+          </div>
+          <p style="font-size:0.8rem; color:var(--text-dim);">Developed with TensorFlow & Gemini Vision</p>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 PlantDoctor. All rights reserved.</p>
+        <p id="footerCopy">Privacy Policy · Terms of Service · Documentation</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- -------------------------------------------------------------
+       JAVASCRIPT LOGIC (PRESERVES ALL ORIGINAL FUNCTIONALITY)
+  ------------------------------------------------------------- -->
+  <script>
+    // Configuration & Constants
+    let API_URL = "http://127.0.0.1:5000/predict";
+    const LOW_CONFIDENCE_THRESHOLD = 60;
+    const REJECT_THRESHOLD = 40;
+    const GAUGE_CIRC = 195; // 2 * PI * 31
+
+    const serverAddressInput = document.getElementById('serverAddress');
+    const saveServerBtn = document.getElementById('saveServerBtn');
+
+    // Restore saved server address from localStorage
+    const savedAddr = localStorage.getItem('plantdoctor_server_address');
+    if (savedAddr) {
+      serverAddressInput.value = savedAddr;
+      API_URL = 'http://' + savedAddr + '/predict';
+    }
+
+    saveServerBtn.addEventListener('click', () => {
+      const addr = serverAddressInput.value.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+      if (addr) {
+        API_URL = 'http://' + addr + '/predict';
+        localStorage.setItem('plantdoctor_server_address', addr);
+        statusEl.textContent = '';
+        saveServerBtn.textContent = '✓';
+        setTimeout(() => { saveServerBtn.textContent = TEXT[currentLang].save || 'Save'; }, 1200);
+      }
+    });
+
+    function toggleServerSettings() {
+      const fields = document.getElementById('serverFields');
+      fields.classList.toggle('show');
+    }
+
+    let historyItems = [];
+    let selectedFile = null;
+    let currentLang = 'en';
+    let darkMode = true;
+    let lastResultData = null;
+
+    // Bilingual Dictionary (English & Hindi)
+    const TEXT = {
+      en: {
+        navHome: "Home", navFeatures: "Features", navHow: "How It Works", navScanner: "AI Diagnosis", navStats: "Stats", navReviews: "Reviews", navCta: "Scan Plant →",
+        heroBadge: "HEALTHIER PLANTS • GREENER TOMORROW",
+        heroHeadline: 'Healthy Plants Start with a <span class="gradient-text">Smart Diagnosis</span>',
+        heroSubheading: "PlantDoctor uses AI-powered plant disease detection to identify plant problems and provide simple, practical solutions.",
+        heroScanBtn: "Scan Your Plant",
+        heroExploreBtn: "Explore PlantDoctor",
+        trust1: "Accurate Detection (96%)", trust2: "Expert Organic Solutions", trust3: "Fast & Easy To Use",
+        featTag: "WHY PLANTDOCTOR?", featTitle: "Everything You Need for Healthier Plants",
+        featSubtitle: "From disease detection to expert guidance, PlantDoctor is your trusted companion in plant care.",
+        f1Title: "AI Disease Detection", f1Desc: "Instantly identify 15+ crop diseases across Tomato, Potato, and Pepper leaves with deep neural vision models.",
+        f2Title: "Instant Results", f2Desc: "Millisecond image analysis with real-time confidence scores, leaf validation, and non-plant photo rejection.",
+        f3Title: "Disease Solutions", f3Desc: "Curated agronomy remedies detailing actionable treatments, watering adjustments, and organic prevention.",
+        f4Title: "Plant Care Guidance", f4Desc: "Bilingual AI explanations in Hindi + English powered by Gemini to help farmers and gardeners take immediate action.",
+        howTag: "HOW IT WORKS", howTitle: "Get Your Plant Checked in 3 Simple Steps",
+        howSubtitle: "Protect your garden or agricultural crop with accurate, AI-backed insights in seconds.",
+        s1Title: "Upload Plant Image", s1Desc: "Take a photo directly with your mobile camera or upload an existing JPG/PNG leaf picture.",
+        s2Title: "AI Analyzes the Leaf", s2Desc: "Our trained Convolutional Neural Network scans the color distribution, leaf morphology, and lesion patterns.",
+        s3Title: "Get Disease & Solution", s3Desc: "Receive the verified disease identification, confidence percentage, likely causes, and treatment remedies.",
+        scanTag: "LIVE AI DIAGNOSIS", scanTitle: "Scan & Diagnose Your Plant Leaf Now",
+        scanSubtitle: "Upload a clear photo of Tomato, Potato, or Bell Pepper leaves to test the trained model.",
+        uploadMain: "Upload photo", uploadHint: "JPG or PNG (Click or Drag)",
+        cameraBtn: "Use camera", cameraHint: "Take a photo now",
+        predictBtn: "Analyze Leaf", analyzing: "Analyzing leaf with AI vision…",
+        serverError: "Could not reach the server. Is app.py running?",
+        cause: "Likely Cause", solution: "Recommended Action",
+        history: "Recent Checks", historyEmpty: "No checks yet this session",
+        lowConf: "⚠ Low confidence — try a clearer, well-lit photo of the leaf",
+        confident: "confident",
+        healthy: "Healthy", fungus: "Fungal", bacteria: "Bacterial", virus: "Viral", pest: "Pest",
+        save: "Save", serverLabel: "Backend Server Connection", serverHint: "Laptop default: 127.0.0.1:5000 · For mobile devices, enter your PC's WiFi IP address.",
+        notRecognizedTitle: "Not recognized",
+        notRecognizedText: "This photo doesn't look like Tomato, Potato, or Pepper leaves — the plants this model was trained on. Try uploading a clear, well-lit photo of one of those leaves.",
+        ctaTitle: "Give Your Plants a Smarter Diagnosis",
+        ctaDesc: "Scan. Detect. Treat. Grow healthier plants with PlantDoctor.",
+        ctaBtn: "Start Diagnosis →"
+      },
+      hi: {
+        navHome: "होम", navFeatures: "विशेषताएं", navHow: "यह कैसे काम करता है", navScanner: "AI जांच", navStats: "आंकड़े", navReviews: "प्रतिक्रिया", navCta: "पत्ती जांचें →",
+        heroBadge: "स्वस्थ फसलें • खुशहाल कल",
+        heroHeadline: 'स्वस्थ फसलों की शुरुआत <span class="gradient-text">सटीक AI जांच</span> से',
+        heroSubheading: "प्लांटडॉक्टर पौधों की बीमारियों की तुरंत पहचान कर आसान और असरदार समाधान प्रदान करता है।",
+        heroScanBtn: "पौधे की जांच करें",
+        heroExploreBtn: "और जानें",
+        trust1: "96% सटीक परिणाम", trust2: "प्राकृतिक और जैविक समाधान", trust3: "आसान और तेज़",
+        featTag: "प्लांटडॉक्टर क्यों?", featTitle: "स्वस्थ फसलों के लिए संपूर्ण समाधान",
+        featSubtitle: "सटीक बीमारी पहचान से लेकर विशेषज्ञ सलाह तक, प्लांटडॉक्टर आपका विश्वसनीय सहायक है।",
+        f1Title: "AI रोग पहचान", f1Desc: "टमाटर, आलू और शिमला मिर्च की पत्तियों में 15+ बीमारियों की तुरंत पहचान करें।",
+        f2Title: "तुरंत परिणाम", f2Desc: "सेकंडों में जांच परिणाम, सटीकता प्रतिशत और अमान्य फोटो की सुरक्षा जांच।",
+        f3Title: "इलाज और रोकथाम", f3Desc: "संक्रमण हटाने, पानी देने के सही नियम और जैविक फफूंदनाशक के सुझाव।",
+        f4Title: "सरल हिंदी मार्गदर्शन", f4Desc: "जैमिनी AI द्वारा हिंदी और अंग्रेजी में आसान भाषा में रोग का कारण और उपाय।",
+        howTag: "प्रक्रिया", howTitle: "3 आसान चरणों में पत्ती की जांच करें",
+        howSubtitle: "बस फोटो खींचें और सेकंडों में सही बीमारी और इलाज जानें।",
+        s1Title: "पत्ती की फोटो लें", s1Desc: "अपने मोबाइल कैमरे से फोटो खींचें या गैलरी से अपलोड करें।",
+        s2Title: "AI विश्लेषण", s2Desc: "हमारा डीप लर्निंग मॉडल पत्ती के धब्बों और रंग का विश्लेषण करता है।",
+        s3Title: "रोग व उपचार पाएं", s3Desc: "सटीक बीमारी का नाम, कारण और उपचार की संपूर्ण सूची प्राप्त करें।",
+        scanTag: "लाइव AI जांच", scanTitle: "अपनी पत्ती की फोटो स्कैन करें",
+        scanSubtitle: "टमाटर, आलू या शिमला मिर्च की साफ़ पत्ती की फोटो अपलोड करें।",
+        uploadMain: "फोटो अपलोड करें", uploadHint: "JPG या PNG चुनें",
+        cameraBtn: "कैमरा खोलें", cameraHint: "सीधे फोटो खींचें",
+        predictBtn: "पत्ती जांचें", analyzing: "AI द्वारा पत्ती की जांच हो रही है…",
+        serverError: "सर्वर से संपर्क नहीं हो पाया। क्या app.py चल रहा है?",
+        cause: "संभावित कारण", solution: "सुझाया गया उपचार",
+        history: "हाल की जांचें", historyEmpty: "इस सत्र में अभी कोई जांच नहीं हुई",
+        lowConf: "⚠ कम भरोसेमंद परिणाम — कृपया अच्छी रोशनी में साफ़ फोटो लें",
+        confident: "भरोसा",
+        healthy: "स्वस्थ", fungus: "फफूंद", bacteria: "बैक्टीरिया", virus: "वायरस", pest: "कीट",
+        save: "सेव करें", serverLabel: "सर्वर कनेक्शन", serverHint: "लैपटॉप पर 127.0.0.1:5000 · मोबाइल के लिए लैपटॉप का WiFi IP डालें।",
+        notRecognizedTitle: "पहचान नहीं हुई",
+        notRecognizedText: "यह फोटो टमाटर, आलू, या शिमला मिर्च की पत्ती जैसी नहीं लगती। कृपया इनमें से किसी एक पौधे की साफ़ फोटो अपलोड करें।",
+        ctaTitle: "अपनी फसलों को दें स्मार्ट सुरक्षा",
+        ctaDesc: "स्कैन करें, बीमारी पहचानें और सही उपचार से फसल बचाएं।",
+        ctaBtn: "अभी जांच शुरू करें →"
+      }
+    };
+
+    // Hindi class info database
+    const HINDI_INFO = {
+      "Tomato_Bacterial_spot": {
+        name: "टमाटर — बैक्टीरियल स्पॉट",
+        cause: "ज़ैंथोमोनास बैक्टीरिया, गर्म और नम मौसम में फैलता है",
+        solution: ["संक्रमित पत्तियाँ हटा दें", "ऊपर से पानी देने से बचें", "कॉपर आधारित बैक्टीरिसाइड का छिड़काव करें"]
+      },
+      "Tomato__Target_Spot": {
+        name: "टमाटर — टारगेट स्पॉट",
+        cause: "कोरिनेस्पोरा कैसीकोला (फफूंद)",
+        solution: ["क्लोरोथैलोनिल या मैंकोज़ेब फफूंदनाशक डालें", "हवा का बहाव बेहतर करें", "संक्रमित पत्तियाँ हटा दें"]
+      },
+      "Pepper__bell___healthy": {
+        name: "शिमला मिर्च — स्वस्थ",
+        cause: "कोई बीमारी नहीं मिली",
+        solution: ["पौधा बिल्कुल स्वस्थ है", "नियमित पानी और खाद की देखरेख जारी रखें"]
+      },
+      "Tomato__Tomato_YellowLeaf__Curl_Virus": {
+        name: "टमाटर — येलो लीफ कर्ल वायरस",
+        cause: "सफ़ेद मक्खी से फैलने वाला वायरस",
+        solution: ["संक्रमित पौधे हटाकर नष्ट करें", "सफ़ेद मक्खी को कीटनाशक/चिपचिपे ट्रैप से नियंत्रित करें", "वायरस-प्रतिरोधी किस्में उगाएं"]
+      },
+      "Potato___Early_blight": {
+        name: "आलू — अर्ली ब्लाइट",
+        cause: "अल्टरनेरिया सोलानी (फफूंद)",
+        solution: ["क्लोरोथैलोनिल फफूंदनाशक डालें", "फसल चक्र अपनाएं", "पौधों के बीच उचित दूरी रखें"]
+      },
+      "Tomato_Late_blight": {
+        name: "टमाटर — लेट ब्लाइट",
+        cause: "फाइटोफ्थोरा इन्फेस्टान्स (फफूंद)",
+        solution: ["मैंकोज़ेब या कॉपर फफूंदनाशक डालें", "संक्रमित पत्तियाँ तुरंत हटा दें", "ऊपर से पानी देने से बचें"]
+      },
+      "Tomato_Septoria_leaf_spot": {
+        name: "टमाटर — सेप्टोरिया लीफ स्पॉट",
+        cause: "सेप्टोरिया लाइकोपर्सिसी (फफूंद)",
+        solution: ["नीचे की संक्रमित पत्तियाँ हटा दें", "फफूंदनाशक का छिड़काव करें", "पत्तियों को गीला करने से बचें"]
+      },
+      "Tomato_Leaf_Mold": {
+        name: "टमाटर — लीफ मोल्ड",
+        cause: "पैसालोरा फुल्वा (फफूंद), नमी में बढ़ता है",
+        solution: ["हवा का बहाव बेहतर करें", "नमी कम करें", "फफूंदनाशक डालें"]
+      },
+      "Tomato_Spider_mites_Two_spotted_spider_mite": {
+        name: "टमाटर — स्पाइडर माइट (कीट)",
+        cause: "टेट्रानाइकस अर्टिका (कीट)",
+        solution: ["मिटिसाइड या नीम तेल का छिड़काव करें", "नमी बढ़ाएं", "लेडीबग जैसे प्राकृतिक मित्र कीट छोड़ें"]
+      },
+      "Pepper__bell___Bacterial_spot": {
+        name: "शिमला मिर्च — बैक्टीरियल स्पॉट",
+        cause: "ज़ैंथोमोनास बैक्टीरिया",
+        solution: ["संक्रमित पत्तियाँ हटा दें", "कॉपर आधारित छिड़काव करें", "ऊपर से पानी न दें"]
+      },
+      "Potato___healthy": {
+        name: "आलू — स्वस्थ",
+        cause: "कोई बीमारी नहीं मिली",
+        solution: ["पौधा स्वस्थ है", "नियमित पानी और निगरानी जारी रखें"]
+      },
+      "Tomato_healthy": {
+        name: "टमाटर — स्वस्थ",
+        cause: "कोई बीमारी नहीं मिली",
+        solution: ["पौधा स्वस्थ है", "उचित धूप और पानी बनाए रखें"]
+      },
+      "Potato___Late_blight": {
+        name: "आलू — लेट ब्लाइट",
+        cause: "फाइटोफ्थोरा इन्फेस्टान्स (फफूंद)",
+        solution: ["तुरंत मैंकोज़ेब या कॉपर फफूंदनाशक डालें", "संक्रमित पौधे हटा दें"]
+      },
+      "Tomato__Tomato_mosaic_virus": {
+        name: "टमाटर — मोज़ेक वायरस",
+        cause: "टोबामोवायरस, औज़ारों और संपर्क से फैलता है",
+        solution: ["संक्रमित पौधे नष्ट करें", "हाथ और औज़ार साफ़ रखें", "रोग-मुक्त बीज लगाएं"]
+      },
+      "Tomato_Early_blight": {
+        name: "टमाटर — अर्ली ब्लाइट",
+        cause: "अल्टरनेरिया सोलानी (फफूंद)",
+        solution: ["क्लोरोथैलोनिल या मैंकोज़ेब फफूंदनाशक डालें", "नीचे की पत्तियाँ हटाएं", "तने के पास मल्चिंग करें"]
+      }
+    };
+
+    function setLang(lang) {
+      currentLang = lang;
+      document.getElementById('langEn').classList.toggle('active', lang === 'en');
+      document.getElementById('langHi').classList.toggle('active', lang === 'hi');
+      const t = TEXT[lang];
+
+      // Navigation
+      document.getElementById('navHome').textContent = t.navHome;
+      document.getElementById('navFeatures').textContent = t.navFeatures;
+      document.getElementById('navHow').textContent = t.navHow;
+      document.getElementById('navScanner').textContent = t.navScanner;
+      document.getElementById('navStats').textContent = t.navStats;
+      document.getElementById('navReviews').textContent = t.navReviews;
+      document.getElementById('navCtaBtn').innerHTML = `<span>${t.navCta}</span>`;
+
+      // Hero
+      document.getElementById('heroBadge').innerHTML = `<span class="pulse-dot"></span> ${t.heroBadge}`;
+      document.getElementById('heroHeadline').innerHTML = t.heroHeadline;
+      document.getElementById('heroSubheading').textContent = t.heroSubheading;
+      document.getElementById('heroScanBtn').querySelector('span').textContent = t.heroScanBtn;
+      document.getElementById('heroExploreBtn').querySelector('span').textContent = t.heroExploreBtn;
+      document.getElementById('trust1').textContent = t.trust1;
+      document.getElementById('trust2').textContent = t.trust2;
+      document.getElementById('trust3').textContent = t.trust3;
+
+      // Features
+      document.getElementById('featTag').textContent = t.featTag;
+      document.getElementById('featTitle').textContent = t.featTitle;
+      document.getElementById('featSubtitle').textContent = t.featSubtitle;
+      document.getElementById('f1Title').textContent = t.f1Title;
+      document.getElementById('f1Desc').textContent = t.f1Desc;
+      document.getElementById('f2Title').textContent = t.f2Title;
+      document.getElementById('f2Desc').textContent = t.f2Desc;
+      document.getElementById('f3Title').textContent = t.f3Title;
+      document.getElementById('f3Desc').textContent = t.f3Desc;
+      document.getElementById('f4Title').textContent = t.f4Title;
+      document.getElementById('f4Desc').textContent = t.f4Desc;
+
+      // How It Works
+      document.getElementById('howTag').textContent = t.howTag;
+      document.getElementById('howTitle').textContent = t.howTitle;
+      document.getElementById('howSubtitle').textContent = t.howSubtitle;
+      document.getElementById('s1Title').textContent = t.s1Title;
+      document.getElementById('s1Desc').textContent = t.s1Desc;
+      document.getElementById('s2Title').textContent = t.s2Title;
+      document.getElementById('s2Desc').textContent = t.s2Desc;
+      document.getElementById('s3Title').textContent = t.s3Title;
+      document.getElementById('s3Desc').textContent = t.s3Desc;
+
+      // Scanner
+      document.getElementById('scanTag').textContent = t.scanTag;
+      document.getElementById('scanTitle').textContent = t.scanTitle;
+      document.getElementById('scanSubtitle').textContent = t.scanSubtitle;
+      document.getElementById('uploadMain').textContent = t.uploadMain;
+      document.getElementById('uploadHint').textContent = t.uploadHint;
+      document.getElementById('cameraBtnText').textContent = t.cameraBtn;
+      document.getElementById('cameraHint').textContent = t.cameraHint;
+      document.getElementById('predictBtnText').textContent = t.predictBtn;
+      document.getElementById('causeLabel').textContent = t.cause;
+      document.getElementById('solutionLabel').textContent = t.solution;
+      document.getElementById('historyTitle').textContent = t.history;
+      document.getElementById('serverLabel').textContent = t.serverLabel;
+      document.getElementById('serverHint').textContent = t.serverHint;
+      saveServerBtn.textContent = t.save;
+
+      // CTA
+      document.getElementById('ctaTitle').textContent = t.ctaTitle;
+      document.getElementById('ctaDesc').textContent = t.ctaDesc;
+      document.getElementById('ctaBtn').textContent = t.ctaBtn;
+
+      if (historyItems.length === 0) document.getElementById('historyEmpty').textContent = t.historyEmpty;
+      if (lastResultData) renderResult(lastResultData);
+    }
+
+    function toggleTheme() {
+      darkMode = !darkMode;
+      document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+      document.getElementById('themeToggle').textContent = darkMode ? '🌙' : '☀️';
+    }
+
+    function toggleMobileNav() {
+      const links = document.querySelector('.nav-links');
+      if (links.style.display === 'flex') {
+        links.style.display = 'none';
+      } else {
+        links.style.display = 'flex';
+        links.style.flexDirection = 'column';
+        links.style.position = 'absolute';
+        links.style.top = '74px';
+        links.style.left = '0';
+        links.style.width = '100%';
+        links.style.background = 'var(--bg-main)';
+        links.style.padding = '1.5rem';
+        links.style.borderBottom = '1px solid var(--border-subtle)';
+      }
+    }
+
+    // Uploader DOM elements
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const cameraInput = document.getElementById('cameraInput');
+    const previewWrap = document.getElementById('preview-wrap');
+    const preview = document.getElementById('preview');
+    const predictBtn = document.getElementById('predictBtn');
+    const statusEl = document.getElementById('status');
+    const resultEl = document.getElementById('result');
+    const resultPlaceholder = document.getElementById('resultPlaceholder');
+
+    fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
+    cameraInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+
+    function handleFile(file) {
+      selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.src = e.target.result;
+        previewWrap.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+      predictBtn.disabled = false;
+      statusEl.textContent = '';
+    }
+
+    function detectCategory(rawClass, cause) {
+      const text = (rawClass + ' ' + cause).toLowerCase();
+      if (text.includes('healthy')) return 'healthy';
+      if (text.includes('virus')) return 'virus';
+      if (text.includes('bacter') || text.includes('xanthomonas')) return 'bacteria';
+      if (text.includes('mite') || text.includes('pest') || text.includes('insect')) return 'pest';
+      return 'fungus';
+    }
+
+    const categoryIcon = { healthy: '✅', fungus: '🍄', bacteria: '🦠', virus: '🧬', pest: '🐛' };
+    const categoryColor = { healthy: 'var(--healthy)', fungus: 'var(--fungus)', bacteria: 'var(--bacteria)', virus: 'var(--virus)', pest: 'var(--pest)' };
+
+    function renderResult(data) {
+      const t = TEXT[currentLang];
+      resultPlaceholder.style.display = 'none';
+
+      // Rejection check (low confidence or non-plant image)
+      if (data.is_plant === false || data.confidence < REJECT_THRESHOLD) {
+        document.getElementById('notRecognizedTitle').textContent = t.notRecognizedTitle;
+        document.getElementById('notRecognizedText').textContent = data.cause || t.notRecognizedText;
+        document.getElementById('notRecognizedBlock').style.display = 'block';
+        document.getElementById('resultContent').style.display = 'none';
+        document.getElementById('lowConfBanner').style.display = 'none';
+        resultEl.style.display = 'block';
+        return;
+      }
+
+      document.getElementById('notRecognizedBlock').style.display = 'none';
+      document.getElementById('resultContent').style.display = 'block';
+
+      const category = detectCategory(data.raw_class || data.disease, data.cause);
+      const hi = HINDI_INFO[data.raw_class];
+
+      let displayName = data.disease;
+      let displayCause = data.cause;
+      let solutionItems = Array.isArray(data.solution) ? data.solution : String(data.solution).split(',').map(s => s.trim()).filter(Boolean);
+
+      if (currentLang === 'hi' && hi) {
+        displayName = hi.name;
+        displayCause = hi.cause;
+        solutionItems = hi.solution;
+      }
+
+      document.getElementById('diseaseName').textContent = displayName;
+      document.getElementById('causeText').textContent = displayCause;
+
+      const list = document.getElementById('solutionList');
+      list.innerHTML = solutionItems.map(item => `<li>${item}</li>`).join('');
+
+      const chip = document.getElementById('categoryChip');
+      chip.className = 'category-chip ' + category;
+      chip.innerHTML = categoryIcon[category] + ' ' + (t[category] || category);
+
+      // Gauge offset animation
+      const gaugeFg = document.getElementById('gaugeFg');
+      const offset = GAUGE_CIRC - (GAUGE_CIRC * data.confidence / 100);
+      gaugeFg.style.strokeDashoffset = offset;
+      gaugeFg.style.stroke = categoryColor[category];
+      document.getElementById('gaugeLabel').textContent = Math.round(data.confidence) + '%';
+
+      // Low confidence banner
+      const banner = document.getElementById('lowConfBanner');
+      const isLow = data.confidence < LOW_CONFIDENCE_THRESHOLD;
+      banner.style.display = isLow ? 'block' : 'none';
+      banner.textContent = isLow ? t.lowConf : '';
+
+      // Gemini Explanation
+      if (data.gemini_explanation && !data.gemini_explanation.includes("unavailable")) {
+        document.getElementById('geminiText').innerText = data.gemini_explanation;
+        document.getElementById('geminiBlock').style.display = 'flex';
+      } else if (data.gemini_explanation) {
+        document.getElementById('geminiText').innerText = data.gemini_explanation;
+        document.getElementById('geminiBlock').style.display = 'flex';
+      } else {
+        document.getElementById('geminiBlock').style.display = 'none';
+      }
+
+      resultEl.style.display = 'block';
+    }
+
+    predictBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      const t = TEXT[currentLang];
+
+      predictBtn.disabled = true;
+      predictBtn.classList.add('loading');
+      statusEl.textContent = t.analyzing;
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      try {
+        const res = await fetch(API_URL, { method: 'POST', body: formData });
+        if (!res.ok) throw new Error('Server error');
+        const data = await res.json();
+
+        if (data.error) {
+          statusEl.textContent = 'Error: ' + data.error;
+          return;
+        }
+
+        lastResultData = data;
+        renderResult(data);
+        statusEl.textContent = '';
+        addToHistory(data, preview.src);
+      } catch (err) {
+        statusEl.textContent = t.serverError;
+      } finally {
+        predictBtn.disabled = false;
+        predictBtn.classList.remove('loading');
+      }
+    });
+
+    function addToHistory(data, imgSrc) {
+      historyItems.unshift({
+        disease: data.disease,
+        confidence: Math.round(data.confidence),
+        img: imgSrc,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+      if (historyItems.length > 6) historyItems.pop();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      const t = TEXT[currentLang];
+      if (historyItems.length === 0) {
+        list.innerHTML = `<p class="history-empty" id="historyEmpty">${t.historyEmpty}</p>`;
+        return;
+      }
+      list.innerHTML = historyItems.map(item => `
+        <div class="history-pill">
+          <img src="${item.img}" alt="${item.disease}">
+          <div>
+            <div class="hp-name">${item.disease}</div>
+            <div class="hp-meta">${item.confidence}% · ${item.time}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // -------------------------------------------------------------
+    // SCROLL REVEAL (INTERSECTION OBSERVER) & STATS COUNTER ANIMATION
+    // -------------------------------------------------------------
+    const revealElements = document.querySelectorAll('.reveal-on-scroll');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        }
+      });
+    }, { threshold: 0.12 });
+    revealElements.forEach(el => observer.observe(el));
+
+    // Stats Counting Animation
+    let statsAnimated = false;
+    const statsSection = document.getElementById('stats');
+    const statObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !statsAnimated) {
+          statsAnimated = true;
+          document.querySelectorAll('.stat-number').forEach(stat => {
+            const target = parseInt(stat.getAttribute('data-target'), 10);
+            const suffix = stat.getAttribute('data-suffix') || '';
+            let current = 0;
+            const step = Math.max(1, Math.ceil(target / 40));
+            const timer = setInterval(() => {
+              current += step;
+              if (current >= target) {
+                current = target;
+                clearInterval(timer);
+              }
+              stat.textContent = current + suffix;
+            }, 30);
+          });
+        }
+      });
+    }, { threshold: 0.2 });
+    if (statsSection) statObserver.observe(statsSection);
+
+    // Initialize Default Language
+    setLang('en');
+  </script>
+</body>
+</html>

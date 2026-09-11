@@ -2142,14 +2142,14 @@
           <!-- Collapsible Server Settings -->
           <div class="server-config-box">
             <button class="server-config-toggle" onclick="toggleServerSettings()">
-              ⚙️ <span id="serverLabel">Backend Server Connection (127.0.0.1:5000)</span>
+              ⚙️ <span id="serverLabel">Backend Server Connection (plantdoctor-m9j4.onrender.com)</span>
             </button>
             <div class="server-config-fields" id="serverFields">
-              <input type="text" id="serverAddress" placeholder="127.0.0.1:5000" value="127.0.0.1:5000">
+              <input type="text" id="serverAddress" placeholder="plantdoctor-m9j4.onrender.com" value="plantdoctor-m9j4.onrender.com">
               <button id="saveServerBtn">Save</button>
             </div>
             <p style="font-size:0.72rem; color:var(--text-dim); margin-top:0.3rem;" id="serverHint">
-              Laptop default: 127.0.0.1:5000 · For mobile devices, enter your PC's WiFi IP address.
+              Laptop default: plantdoctor-m9j4.onrender.com · For mobile devices, enter your PC's WiFi IP address.
             </p>
           </div>
         </div>
@@ -2361,7 +2361,7 @@
           <p id="footerSub">AI-Powered Plant Health Assistant • Healthy Plants | Sustainable Future</p>
           <div class="server-status-badge" style="margin-top:1rem;">
             <span class="status-dot"></span>
-            <span>API Server: 127.0.0.1:5000</span>
+            <span>API Server: plantdoctor-m9j4.onrender.com</span>
           </div>
         </div>
 
@@ -2410,7 +2410,7 @@
   ------------------------------------------------------------- -->
   <script>
     // Configuration & Constants
-    let API_URL = "http://127.0.0.1:5000/predict";
+    let API_URL = "https://plantdoctor-m9j4.onrender.com/predict";
     const LOW_CONFIDENCE_THRESHOLD = 60;
     const REJECT_THRESHOLD = 40;
     const GAUGE_CIRC = 195; // 2 * PI * 31
@@ -2422,13 +2422,13 @@
     const savedAddr = localStorage.getItem('plantdoctor_server_address');
     if (savedAddr) {
       serverAddressInput.value = savedAddr;
-      API_URL = 'http://' + savedAddr + '/predict';
+      API_URL = 'https://' + savedAddr + '/predict';
     }
 
     saveServerBtn.addEventListener('click', () => {
       const addr = serverAddressInput.value.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
       if (addr) {
-        API_URL = 'http://' + addr + '/predict';
+        API_URL = 'https://' + addr + '/predict';
         localStorage.setItem('plantdoctor_server_address', addr);
         statusEl.textContent = '';
         saveServerBtn.textContent = '✓';
@@ -2479,7 +2479,7 @@
         lowConf: "⚠ Low confidence — try a clearer, well-lit photo of the leaf",
         confident: "confident",
         healthy: "Healthy", fungus: "Fungal", bacteria: "Bacterial", virus: "Viral", pest: "Pest",
-        save: "Save", serverLabel: "Backend Server Connection", serverHint: "Laptop default: 127.0.0.1:5000 · For mobile devices, enter your PC's WiFi IP address.",
+        save: "Save", serverLabel: "Backend Server Connection", serverHint: "Laptop default: plantdoctor-m9j4.onrender.com · For mobile devices, enter your PC's WiFi IP address.",
         notRecognizedTitle: "Not recognized",
         notRecognizedText: "This photo doesn't look like Tomato, Potato, or Pepper leaves — the plants this model was trained on. Try uploading a clear, well-lit photo of one of those leaves.",
         ctaTitle: "Give Your Plants a Smarter Diagnosis",
@@ -2516,7 +2516,7 @@
         lowConf: "⚠ कम भरोसेमंद परिणाम — कृपया अच्छी रोशनी में साफ़ फोटो लें",
         confident: "भरोसा",
         healthy: "स्वस्थ", fungus: "फफूंद", bacteria: "बैक्टीरिया", virus: "वायरस", pest: "कीट",
-        save: "सेव करें", serverLabel: "सर्वर कनेक्शन", serverHint: "लैपटॉप पर 127.0.0.1:5000 · मोबाइल के लिए लैपटॉप का WiFi IP डालें।",
+        save: "सेव करें", serverLabel: "सर्वर कनेक्शन", serverHint: "लैपटॉप पर plantdoctor-m9j4.onrender.com · मोबाइल के लिए लैपटॉप का WiFi IP डालें।",
         notRecognizedTitle: "पहचान नहीं हुई",
         notRecognizedText: "यह फोटो टमाटर, आलू, या शिमला मिर्च की पत्ती जैसी नहीं लगती। कृपया इनमें से किसी एक पौधे की साफ़ फोटो अपलोड करें।",
         ctaTitle: "अपनी फसलों को दें स्मार्ट सुरक्षा",

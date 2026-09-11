@@ -375,11 +375,11 @@
   <div class="card" id="serverCard" style="padding: 1rem 1.4rem;">
     <label style="font-size:0.76rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--gray); font-weight:600;" id="serverLabel">Server address</label>
     <div style="display:flex; gap:0.5rem; margin-top:0.4rem;">
-      <input type="text" id="serverAddress" placeholder="192.168.1.5:5000" value="127.0.0.1:5000"
+      <input type="text" id="serverAddress" placeholder="192.168.1.5:5000" value="plantdoctor-m9j4.onrender.com"
         style="flex:1; padding:0.55rem 0.7rem; border-radius:8px; border:1px solid var(--border); background:var(--paper); color:var(--ink); font-family:inherit; font-size:0.9rem;">
       <button id="saveServerBtn" style="padding:0.55rem 1rem; border-radius:8px; border:none; background:var(--mid); color:white; font-weight:600; cursor:pointer; font-family:inherit;">Save</button>
     </div>
-    <p style="font-size:0.76rem; color:var(--gray); margin:0.4rem 0 0;" id="serverHint">On this laptop use 127.0.0.1:5000 · On phones use the laptop's WiFi IP (shown in the terminal when app.py starts)</p>
+    <p style="font-size:0.76rem; color:var(--gray); margin:0.4rem 0 0;" id="serverHint">On this laptop use plantdoctor-m9j4.onrender.com · On phones use the laptop's WiFi IP (shown in the terminal when app.py starts)</p>
   </div>
 
   <div class="card">
@@ -467,7 +467,7 @@
 <footer id="footerText">PlantDoctor · Local model running on your machine</footer>
 
 <script>
-  let API_URL = "http://127.0.0.1:5000/predict";
+  let API_URL = "https://plantdoctor-m9j4.onrender.com/predict";
   const LOW_CONFIDENCE_THRESHOLD = 60;
   const REJECT_THRESHOLD = 40; // below this, treat as "not a recognized plant/leaf"
   const GAUGE_CIRC = 195; // 2 * PI * 31
@@ -479,13 +479,13 @@
   const savedAddr = localStorage.getItem('plantdoctor_server_address');
   if (savedAddr) {
     serverAddressInput.value = savedAddr;
-    API_URL = 'http://' + savedAddr + '/predict';
+    API_URL = 'https://' + savedAddr + '/predict';
   }
 
   saveServerBtn.addEventListener('click', () => {
     const addr = serverAddressInput.value.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
     if (addr) {
-      API_URL = 'http://' + addr + '/predict';
+      API_URL = 'https://' + addr + '/predict';
       localStorage.setItem('plantdoctor_server_address', addr);
       statusEl.textContent = '';
       saveServerBtn.textContent = '✓';
@@ -515,7 +515,7 @@
       confident: "confident", capture: "📸 Capture", cancel: "Cancel",
       cameraError: "Could not access camera. Check browser permissions.",
       healthy: "Healthy", fungus: "Fungal", bacteria: "Bacterial", virus: "Viral", pest: "Pest",
-      save: "Save", serverLabel: "Server address", serverHint: "On this laptop use 127.0.0.1:5000 · On phones use the laptop's WiFi IP (shown in the terminal when app.py starts)",
+      save: "Save", serverLabel: "Server address", serverHint: "On this laptop use plantdoctor-m9j4.onrender.com · On phones use the laptop's WiFi IP (shown in the terminal when app.py starts)",
       notRecognizedTitle: "Not recognized",
       notRecognizedText: "This photo doesn't look like Tomato, Potato, or Pepper leaves — the plants this model was trained on. Try uploading a clear, well-lit photo of one of those leaves."
     },
@@ -534,7 +534,7 @@
       confident: "भरोसा", capture: "📸 फोटो लें", cancel: "रद्द करें",
       cameraError: "कैमरा एक्सेस नहीं मिला। ब्राउज़र अनुमतियाँ जांचें।",
       healthy: "स्वस्थ", fungus: "फफूंद", bacteria: "बैक्टीरिया", virus: "वायरस", pest: "कीट",
-      save: "सेव करें", serverLabel: "सर्वर पता", serverHint: "इस लैपटॉप पर 127.0.0.1:5000 इस्तेमाल करें · फोन पर लैपटॉप का WiFi IP इस्तेमाल करें (app.py शुरू होने पर टर्मिनल में दिखता है)",
+      save: "सेव करें", serverLabel: "सर्वर पता", serverHint: "इस लैपटॉप पर plantdoctor-m9j4.onrender.com इस्तेमाल करें · फोन पर लैपटॉप का WiFi IP इस्तेमाल करें (app.py शुरू होने पर टर्मिनल में दिखता है)",
       notRecognizedTitle: "पहचान नहीं हुई",
       notRecognizedText: "यह फोटो टमाटर, आलू, या शिमला मिर्च की पत्ती जैसी नहीं लगती — यही पौधे इस मॉडल को सिखाए गए हैं। कृपया इनमें से किसी एक पौधे की साफ़ फोटो अपलोड करें।"
     }
